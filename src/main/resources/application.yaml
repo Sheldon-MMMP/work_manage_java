@@ -1,0 +1,26 @@
+server:
+  port: 8081
+
+spring:
+  datasource:
+    url: jdbc:postgresql://192.168.3.128:5432/work-manage?useUnicode=true&characterEncoding=utf-8
+    username: work-manage
+    password: fd8exxCRcsY5EtNB
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate.format_sql: true
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+jwt:
+  secret: bXlTZWNyZXRLZXlGb3JKd3RUb2tlbkdlbmVyYXRpb25BbmRWYWxpZGF0aW9u
+  expiration: 86400000  # 24小时
+
+logging:
+  level:
+    com.example.okrmanagement: DEBUG
+    org.springframework.security: DEBUG
