@@ -1,15 +1,17 @@
 package com.example.okrmanagement.controller;
 
+import com.example.okrmanagement.dto.SuccessResponse;
 import com.example.okrmanagement.entity.Anniversary;
 import com.example.okrmanagement.entity.User;
 import com.example.okrmanagement.service.AnniversaryService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
 @CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/v1/anniversaries")
@@ -18,30 +20,58 @@ public class AnniversaryController {
     private AnniversaryService anniversaryService;
 
     @PostMapping
-    public ResponseEntity<Anniversary> createAnniversary(@RequestBody Anniversary anniversary, Authentication authentication) {
+    public SuccessResponse createAnniversary(@RequestBody Anniversary anniversary, Authentication authentication) {
         User user = (User) authentication.getPrincipal();
-        Anniversary newAnniversary = anniversaryService.createAnniversary(anniversary, user);
-        return ResponseEntity.ok(newAnniversary);
+        log.info("Creating anniversary by user: {}", user.getUsername());
+        try {
+            Anniversary newAnniversary = anniversaryService.createAnniversary(anniversary, user);
+            log.info("Anniversary created successfully: {}", newAnniversary.getId());
+            return new SuccessResponse(newAnniversary);
+        } catch (Exception e) {
+            log.error("Create anniversary failed for user: {}", user.getUsername(), e);
+            throw e;
+        }
     }
 
     @GetMapping
-    public ResponseEntity<List<Anniversary>> getAnniversaries(Authentication authentication) {
+    public SuccessResponse getAnniversaries(Authentication authentication) {
         User user = (User) authentication.getPrincipal();
-        List<Anniversary> anniversaries = anniversaryService.getAnniversaries(user);
-        return ResponseEntity.ok(anniversaries);
+        log.info("Getting anniversaries for user: {}", user.getUsername());
+        try {
+            List<Anniversary> anniversaries = anniversaryService.getAnniversaries(user);
+            log.info("Got {} anniversaries for user: {}", anniversaries.size(), user.getUsername());
+            return new SuccessResponse(anniversaries);
+        } catch (Exception e) {
+            log.error("Get anniversaries failed for user: {}", user.getUsername(), e);
+            throw e;
+        }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Anniversary> updateAnniversary(@PathVariable Long id, @RequestBody Anniversary anniversary, Authentication authentication) {
+    public SuccessResponse updateAnniversary(@PathVariable Long id, @RequestBody Anniversary anniversary, Authentication authentication) {
         User user = (User) authentication.getPrincipal();
-        Anniversary updatedAnniversary = anniversaryService.updateAnniversary(id, anniversary, user);
-        return ResponseEntity.ok(updatedAnniversary);
+        log.info("Updating anniversary {} by user: {}", id, user.getUsername());
+        try {
+            Anniversary updatedAnniversary = anniversaryService.updateAnniversary(id, anniversary, user);
+            log.info("Anniversary updated successfully: {}", updatedAnniversary.getId());
+            return new SuccessResponse(updatedAnniversary);
+        } catch (Exception e) {
+            log.error("Update anniversary failed for id {} by user: {}", id, user.getUsername(), e);
+            throw e;
+        }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteAnniversary(@PathVariable Long id, Authentication authentication) {
+    public SuccessResponse deleteAnniversary(@PathVariable Long id, Authentication authentication) {
         User user = (User) authentication.getPrincipal();
-        anniversaryService.deleteAnniversary(id, user);
-        return ResponseEntity.noContent().build();
+        log.info("Deleting anniversary {} by user: {}", id, user.getUsername());
+        try {
+            anniversaryService.deleteAnniversary(id, user);
+            log.info("Anniversary deleted successfully: {}", id);
+            return new SuccessResponse();
+        } catch (Exception e) {
+            log.error("Delete anniversary failed for id {} by user: {}", id, user.getUsername(), e);
+            throw e;
+        }
     }
 }

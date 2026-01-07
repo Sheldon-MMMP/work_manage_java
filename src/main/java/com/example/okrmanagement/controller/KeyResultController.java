@@ -1,15 +1,17 @@
 package com.example.okrmanagement.controller;
 
+import com.example.okrmanagement.dto.SuccessResponse;
 import com.example.okrmanagement.entity.KeyResult;
 import com.example.okrmanagement.entity.User;
 import com.example.okrmanagement.service.KeyResultService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
 @CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/v1")
@@ -18,30 +20,58 @@ public class KeyResultController {
     private KeyResultService keyResultService;
 
     @PostMapping("/objectives/{objectiveId}/key-results")
-    public ResponseEntity<KeyResult> createKeyResult(@PathVariable Long objectiveId, @RequestBody KeyResult keyResult, Authentication authentication) {
+    public SuccessResponse createKeyResult(@PathVariable Long objectiveId, @RequestBody KeyResult keyResult, Authentication authentication) {
         User user = (User) authentication.getPrincipal();
-        KeyResult newKeyResult = keyResultService.createKeyResult(objectiveId, keyResult, user);
-        return ResponseEntity.ok(newKeyResult);
+        log.info("Creating key result for objective {} by user {}", objectiveId, user.getUsername());
+        try {
+            KeyResult newKeyResult = keyResultService.createKeyResult(objectiveId, keyResult, user);
+            log.info("Key result created successfully: {}", newKeyResult.getId());
+            return new SuccessResponse(newKeyResult);
+        } catch (Exception e) {
+            log.error("Create key result failed for objective {} by user {}", objectiveId, user.getUsername(), e);
+            throw e;
+        }
     }
 
     @GetMapping("/objectives/{objectiveId}/key-results")
-    public ResponseEntity<List<KeyResult>> getKeyResults(@PathVariable Long objectiveId, Authentication authentication) {
+    public SuccessResponse getKeyResults(@PathVariable Long objectiveId, Authentication authentication) {
         User user = (User) authentication.getPrincipal();
-        List<KeyResult> keyResults = keyResultService.getKeyResults(objectiveId, user);
-        return ResponseEntity.ok(keyResults);
+        log.info("Getting key results for objective {} by user {}", objectiveId, user.getUsername());
+        try {
+            List<KeyResult> keyResults = keyResultService.getKeyResults(objectiveId, user);
+            log.info("Got {} key results for objective {}", keyResults.size(), objectiveId);
+            return new SuccessResponse(keyResults);
+        } catch (Exception e) {
+            log.error("Get key results failed for objective {} by user {}", objectiveId, user.getUsername(), e);
+            throw e;
+        }
     }
 
     @PutMapping("/key-results/{id}")
-    public ResponseEntity<KeyResult> updateKeyResult(@PathVariable Long id, @RequestBody KeyResult keyResult, Authentication authentication) {
+    public SuccessResponse updateKeyResult(@PathVariable Long id, @RequestBody KeyResult keyResult, Authentication authentication) {
         User user = (User) authentication.getPrincipal();
-        KeyResult updatedKeyResult = keyResultService.updateKeyResult(id, keyResult, user);
-        return ResponseEntity.ok(updatedKeyResult);
+        log.info("Updating key result {} by user {}", id, user.getUsername());
+        try {
+            KeyResult updatedKeyResult = keyResultService.updateKeyResult(id, keyResult, user);
+            log.info("Key result updated successfully: {}", updatedKeyResult.getId());
+            return new SuccessResponse(updatedKeyResult);
+        } catch (Exception e) {
+            log.error("Update key result failed for id {} by user {}", id, user.getUsername(), e);
+            throw e;
+        }
     }
 
     @DeleteMapping("/key-results/{id}")
-    public ResponseEntity<Void> deleteKeyResult(@PathVariable Long id, Authentication authentication) {
+    public SuccessResponse deleteKeyResult(@PathVariable Long id, Authentication authentication) {
         User user = (User) authentication.getPrincipal();
-        keyResultService.deleteKeyResult(id, user);
-        return ResponseEntity.noContent().build();
+        log.info("Deleting key result {} by user {}", id, user.getUsername());
+        try {
+            keyResultService.deleteKeyResult(id, user);
+            log.info("Key result deleted successfully: {}", id);
+            return new SuccessResponse();
+        } catch (Exception e) {
+            log.error("Delete key result failed for id {} by user {}", id, user.getUsername(), e);
+            throw e;
+        }
     }
 }

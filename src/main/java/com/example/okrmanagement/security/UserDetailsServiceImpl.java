@@ -14,9 +14,14 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     private UserRepository userRepository;
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User Not Found with username: " + username));
+    public UserDetails loadUserByUsername(String identifier) throws UsernameNotFoundException {
+        // 先尝试通过邮箱查找用户
+        User user = userRepository.findByEmail(identifier)
+                .orElseGet(() -> 
+                    // 如果邮箱查找不到，再尝试通过用户名查找用户
+                    userRepository.findByUsername(identifier)
+                        .orElseThrow(() -> new UsernameNotFoundException("User Not Found with identifier: " + identifier))
+                );
 
         return user;
     }

@@ -1,15 +1,17 @@
 package com.example.okrmanagement.controller;
 
+import com.example.okrmanagement.dto.SuccessResponse;
 import com.example.okrmanagement.entity.Task;
 import com.example.okrmanagement.entity.User;
 import com.example.okrmanagement.service.TaskService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
 @CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/v1/key-results")
@@ -18,30 +20,58 @@ public class TaskController {
     private TaskService taskService;
 
     @PostMapping("/{krId}/tasks")
-    public ResponseEntity<Task> createTask(@PathVariable Long krId, @RequestBody Task task, Authentication authentication) {
+    public SuccessResponse createTask(@PathVariable Long krId, @RequestBody Task task, Authentication authentication) {
         User user = (User) authentication.getPrincipal();
-        Task newTask = taskService.createTask(krId, task, user);
-        return ResponseEntity.ok(newTask);
+        log.info("Creating task for KR {} by user {}", krId, user.getUsername());
+        try {
+            Task newTask = taskService.createTask(krId, task, user);
+            log.info("Task created successfully: {}", newTask.getId());
+            return new SuccessResponse(newTask);
+        } catch (Exception e) {
+            log.error("Create task failed for KR {} by user {}", krId, user.getUsername(), e);
+            throw e;
+        }
     }
 
     @GetMapping("/{krId}/tasks")
-    public ResponseEntity<List<Task>> getTasks(@PathVariable Long krId, Authentication authentication) {
+    public SuccessResponse getTasks(@PathVariable Long krId, Authentication authentication) {
         User user = (User) authentication.getPrincipal();
-        List<Task> tasks = taskService.getTasks(krId, user);
-        return ResponseEntity.ok(tasks);
+        log.info("Getting tasks for KR {} by user {}", krId, user.getUsername());
+        try {
+            List<Task> tasks = taskService.getTasks(krId, user);
+            log.info("Got {} tasks for KR {}", tasks.size(), krId);
+            return new SuccessResponse(tasks);
+        } catch (Exception e) {
+            log.error("Get tasks failed for KR {} by user {}", krId, user.getUsername(), e);
+            throw e;
+        }
     }
 
     @PutMapping("/tasks/{id}")
-    public ResponseEntity<Task> updateTask(@PathVariable Long id, @RequestBody Task task, Authentication authentication) {
+    public SuccessResponse updateTask(@PathVariable Long id, @RequestBody Task task, Authentication authentication) {
         User user = (User) authentication.getPrincipal();
-        Task updatedTask = taskService.updateTask(id, task, user);
-        return ResponseEntity.ok(updatedTask);
+        log.info("Updating task {} by user {}", id, user.getUsername());
+        try {
+            Task updatedTask = taskService.updateTask(id, task, user);
+            log.info("Task updated successfully: {}", updatedTask.getId());
+            return new SuccessResponse(updatedTask);
+        } catch (Exception e) {
+            log.error("Update task failed for id {} by user {}", id, user.getUsername(), e);
+            throw e;
+        }
     }
 
     @DeleteMapping("/tasks/{id}")
-    public ResponseEntity<Void> deleteTask(@PathVariable Long id, Authentication authentication) {
+    public SuccessResponse deleteTask(@PathVariable Long id, Authentication authentication) {
         User user = (User) authentication.getPrincipal();
-        taskService.deleteTask(id, user);
-        return ResponseEntity.noContent().build();
+        log.info("Deleting task {} by user {}", id, user.getUsername());
+        try {
+            taskService.deleteTask(id, user);
+            log.info("Task deleted successfully: {}", id);
+            return new SuccessResponse();
+        } catch (Exception e) {
+            log.error("Delete task failed for id {} by user {}", id, user.getUsername(), e);
+            throw e;
+        }
     }
 }

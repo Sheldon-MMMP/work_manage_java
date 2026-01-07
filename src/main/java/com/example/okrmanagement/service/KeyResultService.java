@@ -20,10 +20,10 @@ public class KeyResultService {
 
     public KeyResult createKeyResult(Long objectiveId, KeyResult keyResult, User user) {
         Objective objective = objectiveRepository.findById(objectiveId)
-                .orElseThrow(() -> new RuntimeException("Objective not found"));
+                .orElseThrow(() -> new RuntimeException("这个目标不存在"));
 
         if (!objective.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("You don't have permission to add KR to this objective");
+            throw new RuntimeException("你没有权限添加KR到这个目标");
         }
 
         keyResult.setObjective(objective);
@@ -32,10 +32,10 @@ public class KeyResultService {
 
     public List<KeyResult> getKeyResults(Long objectiveId, User user) {
         Objective objective = objectiveRepository.findById(objectiveId)
-                .orElseThrow(() -> new RuntimeException("Objective not found"));
+                .orElseThrow(() -> new RuntimeException("这个目标不存在"));
 
         if (!objective.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("You don't have permission to view KRs for this objective");
+            throw new RuntimeException("你没有权限查看这个目标的KR");
         }
 
         return keyResultRepository.findByObjectiveId(objectiveId);
@@ -43,10 +43,10 @@ public class KeyResultService {
 
     public KeyResult updateKeyResult(Long krId, KeyResult updatedKeyResult, User user) {
         KeyResult keyResult = keyResultRepository.findById(krId)
-                .orElseThrow(() -> new RuntimeException("Key Result not found"));
+                .orElseThrow(() -> new RuntimeException("这个KR不存在"));
 
         if (!keyResult.getObjective().getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("You don't have permission to update this KR");
+            throw new RuntimeException("你没有权限更新这个KR");
         }
 
         keyResult.setTitle(updatedKeyResult.getTitle());
@@ -58,10 +58,10 @@ public class KeyResultService {
 
     public void deleteKeyResult(Long krId, User user) {
         KeyResult keyResult = keyResultRepository.findById(krId)
-                .orElseThrow(() -> new RuntimeException("Key Result not found"));
+                .orElseThrow(() -> new RuntimeException("这个KR不存在"));
 
         if (!keyResult.getObjective().getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("You don't have permission to delete this KR");
+            throw new RuntimeException("你没有权限删除这个KR");
         }
 
         keyResultRepository.delete(keyResult);

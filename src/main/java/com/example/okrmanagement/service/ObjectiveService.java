@@ -29,10 +29,10 @@ public class ObjectiveService {
 
     public Objective updateObjective(Long objectiveId, Objective updatedObjective, User user) {
         Objective objective = objectiveRepository.findById(objectiveId)
-                .orElseThrow(() -> new RuntimeException("Objective not found"));
+                .orElseThrow(() -> new RuntimeException("这个目标不存在"));
 
         if (!objective.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("You don't have permission to update this objective");
+            throw new RuntimeException("你没有权限更改这个目标");
         }
 
         objective.setTitle(updatedObjective.getTitle());
@@ -44,10 +44,10 @@ public class ObjectiveService {
 
     public void deleteObjective(Long objectiveId, User user) {
         Objective objective = objectiveRepository.findById(objectiveId)
-                .orElseThrow(() -> new RuntimeException("Objective not found"));
+                .orElseThrow(() -> new RuntimeException("这个目标不存在"));
 
         if (!objective.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("You don't have permission to delete this objective");
+            throw new RuntimeException("你没有权限删除这个目标");
         }
 
         objectiveRepository.delete(objective);
@@ -55,10 +55,10 @@ public class ObjectiveService {
 
     public Objective archiveObjective(Long objectiveId, User user) {
         Objective objective = objectiveRepository.findById(objectiveId)
-                .orElseThrow(() -> new RuntimeException("Objective not found"));
+                .orElseThrow(() -> new RuntimeException("这个目标不存在"));
 
         if (!objective.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("You don't have permission to archive this objective");
+            throw new RuntimeException("你没有权限归档这个目标");
         }
 
         objective.setStatus("archived");

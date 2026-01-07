@@ -20,10 +20,10 @@ public class TaskService {
 
     public Task createTask(Long krId, Task task, User user) {
         KeyResult keyResult = keyResultRepository.findById(krId)
-                .orElseThrow(() -> new RuntimeException("Key Result not found"));
+                .orElseThrow(() -> new RuntimeException("这个KR不存在"));
 
         if (!keyResult.getObjective().getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("You don't have permission to add task to this KR");
+            throw new RuntimeException("你没有权限添加任务到这个KR");
         }
 
         task.setKeyResult(keyResult);
@@ -33,10 +33,10 @@ public class TaskService {
 
     public List<Task> getTasks(Long krId, User user) {
         KeyResult keyResult = keyResultRepository.findById(krId)
-                .orElseThrow(() -> new RuntimeException("Key Result not found"));
+                .orElseThrow(() -> new RuntimeException("这个KR不存在"));
 
         if (!keyResult.getObjective().getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("You don't have permission to view tasks for this KR");
+            throw new RuntimeException("你没有权限查看这个KR的任务");
         }
 
         return taskRepository.findByKeyResultId(krId);
@@ -44,10 +44,10 @@ public class TaskService {
 
     public Task updateTask(Long taskId, Task updatedTask, User user) {
         Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new RuntimeException("Task not found"));
+                .orElseThrow(() -> new RuntimeException("这个任务不存在"));
 
         if (!task.getKeyResult().getObjective().getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("You don't have permission to update this task");
+            throw new RuntimeException("你没有权限更新这个任务");
         }
 
         task.setTitle(updatedTask.getTitle());
@@ -61,10 +61,10 @@ public class TaskService {
 
     public void deleteTask(Long taskId, User user) {
         Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new RuntimeException("Task not found"));
+                .orElseThrow(() -> new RuntimeException("这个任务不存在"));
 
         if (!task.getKeyResult().getObjective().getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("You don't have permission to delete this task");
+            throw new RuntimeException("你没有权限删除这个任务");
         }
 
         taskRepository.delete(task);

@@ -1,16 +1,18 @@
 package com.example.okrmanagement.controller;
 
+import com.example.okrmanagement.dto.SuccessResponse;
 import com.example.okrmanagement.entity.TimeRecord;
 import com.example.okrmanagement.entity.User;
 import com.example.okrmanagement.service.TimeRecordService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/v1/time-records")
@@ -19,30 +21,58 @@ public class TimeRecordController {
     private TimeRecordService timeRecordService;
 
     @PostMapping("/record/{taskId}")
-    public ResponseEntity<TimeRecord> recordTime(@PathVariable Long taskId, @RequestBody TimeRecord timeRecord, Authentication authentication) {
+    public SuccessResponse recordTime(@PathVariable Long taskId, @RequestBody TimeRecord timeRecord, Authentication authentication) {
         User user = (User) authentication.getPrincipal();
-        TimeRecord newTimeRecord = timeRecordService.recordTime(taskId, timeRecord, user);
-        return ResponseEntity.ok(newTimeRecord);
+        log.info("Recording time for task {} by user {}", taskId, user.getUsername());
+        try {
+            TimeRecord newTimeRecord = timeRecordService.recordTime(taskId, timeRecord, user);
+            log.info("Time record created successfully: {}", newTimeRecord.getId());
+            return new SuccessResponse(newTimeRecord);
+        } catch (Exception e) {
+            log.error("Record time failed for task {} by user {}", taskId, user.getUsername(), e);
+            throw e;
+        }
     }
 
     @GetMapping("/recent")
-    public ResponseEntity<List<TimeRecord>> getRecentTimeRecords(Authentication authentication) {
+    public SuccessResponse getRecentTimeRecords(Authentication authentication) {
         User user = (User) authentication.getPrincipal();
-        List<TimeRecord> timeRecords = timeRecordService.getRecentTimeRecords(user);
-        return ResponseEntity.ok(timeRecords);
+        log.info("Getting recent time records for user: {}", user.getUsername());
+        try {
+            List<TimeRecord> timeRecords = timeRecordService.getRecentTimeRecords(user);
+            log.info("Got {} recent time records for user: {}", timeRecords.size(), user.getUsername());
+            return new SuccessResponse(timeRecords);
+        } catch (Exception e) {
+            log.error("Get recent time records failed for user: {}", user.getUsername(), e);
+            throw e;
+        }
     }
 
     @GetMapping("/today")
-    public ResponseEntity<List<TimeRecord>> getTodayTimeRecords(Authentication authentication) {
+    public SuccessResponse getTodayTimeRecords(Authentication authentication) {
         User user = (User) authentication.getPrincipal();
-        List<TimeRecord> timeRecords = timeRecordService.getTodayTimeRecords(user);
-        return ResponseEntity.ok(timeRecords);
+        log.info("Getting today's time records for user: {}", user.getUsername());
+        try {
+            List<TimeRecord> timeRecords = timeRecordService.getTodayTimeRecords(user);
+            log.info("Got {} time records for today for user: {}", timeRecords.size(), user.getUsername());
+            return new SuccessResponse(timeRecords);
+        } catch (Exception e) {
+            log.error("Get today's time records failed for user: {}", user.getUsername(), e);
+            throw e;
+        }
     }
 
     @GetMapping("/today/summary")
-    public ResponseEntity<Map<String, Object>> getTodaySummary(Authentication authentication) {
+    public SuccessResponse getTodaySummary(Authentication authentication) {
         User user = (User) authentication.getPrincipal();
-        Map<String, Object> summary = timeRecordService.getTodaySummary(user);
-        return ResponseEntity.ok(summary);
+        log.info("Getting today's summary for user: {}", user.getUsername());
+        try {
+            Map<String, Object> summary = timeRecordService.getTodaySummary(user);
+            log.info("Got today's summary for user: {}", user.getUsername());
+            return new SuccessResponse(summary);
+        } catch (Exception e) {
+            log.error("Get today's summary failed for user: {}", user.getUsername(), e);
+            throw e;
+        }
     }
 }
