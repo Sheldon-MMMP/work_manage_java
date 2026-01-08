@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import com.example.okrmanagement.exception.BusinessException;
+import com.example.okrmanagement.common.ErrorCode;
 
 @Service
 public class ObjectiveService {
@@ -20,19 +22,28 @@ public class ObjectiveService {
     }
 
     public List<Objective> getActiveObjectives(User user) {
-        return objectiveRepository.findByUserIdAndStatus(user.getId(), "active");
+        Long userId = user.getId();
+        if (userId == null) {
+            throw new BusinessException(ErrorCode.INVALID_PARAMETER);
+        }
+        return objectiveRepository.findByUserIdAndStatus(userId, "active");
     }
 
     public List<Objective> getAllObjectives(User user) {
-        return objectiveRepository.findByUserId(user.getId());
+        Long userId = user.getId();
+        if (userId == null) {
+            throw new BusinessException(ErrorCode.INVALID_PARAMETER);
+        }
+        return objectiveRepository.findByUserId(userId);
     }
 
     public Objective updateObjective(Long objectiveId, Objective updatedObjective, User user) {
         Objective objective = objectiveRepository.findById(objectiveId)
-                .orElseThrow(() -> new RuntimeException("这个目标不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.OBJECTIVE_NOT_FOUND));
 
-        if (!objective.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("你没有权限更改这个目标");
+        Long userId = user.getId();
+        if (userId == null || !objective.getUser().getId().equals(userId)) {
+            throw new BusinessException(ErrorCode.NO_PERMISSION);
         }
 
         objective.setTitle(updatedObjective.getTitle());
@@ -44,10 +55,11 @@ public class ObjectiveService {
 
     public void deleteObjective(Long objectiveId, User user) {
         Objective objective = objectiveRepository.findById(objectiveId)
-                .orElseThrow(() -> new RuntimeException("这个目标不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.OBJECTIVE_NOT_FOUND));
 
-        if (!objective.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("你没有权限删除这个目标");
+        Long userId = user.getId();
+        if (userId == null || !objective.getUser().getId().equals(userId)) {
+            throw new BusinessException(ErrorCode.NO_PERMISSION);
         }
 
         objectiveRepository.delete(objective);
@@ -55,10 +67,11 @@ public class ObjectiveService {
 
     public Objective archiveObjective(Long objectiveId, User user) {
         Objective objective = objectiveRepository.findById(objectiveId)
-                .orElseThrow(() -> new RuntimeException("这个目标不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.OBJECTIVE_NOT_FOUND));
 
-        if (!objective.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("你没有权限归档这个目标");
+        Long userId = user.getId();
+        if (userId == null || !objective.getUser().getId().equals(userId)) {
+            throw new BusinessException(ErrorCode.NO_PERMISSION);
         }
 
         objective.setStatus("archived");

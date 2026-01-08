@@ -4,7 +4,6 @@ import com.example.okrmanagement.dto.JwtResponse;
 import com.example.okrmanagement.dto.LoginRequest;
 import com.example.okrmanagement.dto.RegisterRequest;
 import com.example.okrmanagement.dto.SuccessResponse;
-import com.example.okrmanagement.dto.ErrorResponse;
 import com.example.okrmanagement.entity.User;
 import com.example.okrmanagement.service.AuthService;
 
@@ -21,6 +20,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import com.example.okrmanagement.common.VerificExceptionHandler;
 
 @Slf4j
 @CrossOrigin(origins = "*")
@@ -37,18 +37,14 @@ public class AuthController {
     private JwtUtils jwtUtils;
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest registerRequest, BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            String errorMessage = bindingResult.getFieldError().getDefaultMessage();
-            log.error("Register validation failed: {}", errorMessage);
-            return ResponseEntity.badRequest().body(new ErrorResponse(21100, errorMessage));
-        }
-
-        log.info("Registering user: {}", registerRequest.getUsername());
+    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest registerRequest,
+            BindingResult bindingResult) {
         try {
+            VerificExceptionHandler.handleVerificationException(bindingResult);
+            log.info("Registering user: {}", registerRequest.getUsername());
             User user = authService.register(registerRequest);
             log.info("User registered successfully: {}", user.getEmail());
-            
+
             // 注册成功后自动登录，生成JWT令牌
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(registerRequest.getEmail(), registerRequest.getPassword()));
@@ -56,25 +52,21 @@ public class AuthController {
             SecurityContextHolder.getContext().setAuthentication(authentication);
             String jwt = jwtUtils.generateJwtToken(authentication);
 
-            JwtResponse jwtResponse = new JwtResponse(jwt, user.getId(), user.getUsername(), user.getEmail());
+            JwtResponse jwtResponse = new JwtResponse(jwt, user.getUsername(), user.getEmail());
             log.info("User automatically logged in after registration: {}", user.getEmail());
             return ResponseEntity.ok(new SuccessResponse(jwtResponse));
         } catch (Exception e) {
-            log.error("Register failed for email: {}", registerRequest.getEmail(), e);
+            log.error("Register failed for email: {}", registerRequest.getEmail());
             throw e;
         }
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginRequest, BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            String errorMessage = bindingResult.getFieldError().getDefaultMessage();
-            log.error("Login validation failed: {}", errorMessage);
-            return ResponseEntity.badRequest().body(new ErrorResponse(21100, errorMessage));
-        }
-
         log.info("Login attempt for email: {}", loginRequest.getEmail());
         try {
+            // 判断是否有错误
+            VerificExceptionHandler.handleVerificationException(bindingResult);
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
 
@@ -84,11 +76,11 @@ public class AuthController {
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
             User user = (User) userDetails;
 
-            JwtResponse jwtResponse = new JwtResponse(jwt, user.getId(), user.getUsername(), user.getEmail());
+            JwtResponse jwtResponse = new JwtResponse(jwt, user.getUsername(), user.getEmail());
             log.info("User logged in successfully: {}", user.getEmail());
             return ResponseEntity.ok(new SuccessResponse(jwtResponse));
         } catch (Exception e) {
-            log.error("Login failed for email: {}", loginRequest.getEmail(), e);
+            log.error("Login failed for email: {}", loginRequest.getEmail());
             throw e;
         }
     }

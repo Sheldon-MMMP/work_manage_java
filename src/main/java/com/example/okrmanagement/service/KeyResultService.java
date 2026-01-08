@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import com.example.okrmanagement.exception.BusinessException;
+import com.example.okrmanagement.common.ErrorCode;
 
 @Service
 public class KeyResultService {
@@ -20,10 +22,11 @@ public class KeyResultService {
 
     public KeyResult createKeyResult(Long objectiveId, KeyResult keyResult, User user) {
         Objective objective = objectiveRepository.findById(objectiveId)
-                .orElseThrow(() -> new RuntimeException("这个目标不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.OBJECTIVE_NOT_FOUND));
 
-        if (!objective.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("你没有权限添加KR到这个目标");
+        Long userId = user.getId();
+        if (userId == null || !objective.getUser().getId().equals(userId)) {
+            throw new BusinessException(ErrorCode.NO_PERMISSION);
         }
 
         keyResult.setObjective(objective);
@@ -32,10 +35,11 @@ public class KeyResultService {
 
     public List<KeyResult> getKeyResults(Long objectiveId, User user) {
         Objective objective = objectiveRepository.findById(objectiveId)
-                .orElseThrow(() -> new RuntimeException("这个目标不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.OBJECTIVE_NOT_FOUND));
 
-        if (!objective.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("你没有权限查看这个目标的KR");
+        Long userId = user.getId();
+        if (userId == null || !objective.getUser().getId().equals(userId)) {
+            throw new BusinessException(ErrorCode.NO_PERMISSION);
         }
 
         return keyResultRepository.findByObjectiveId(objectiveId);
@@ -43,10 +47,11 @@ public class KeyResultService {
 
     public KeyResult updateKeyResult(Long krId, KeyResult updatedKeyResult, User user) {
         KeyResult keyResult = keyResultRepository.findById(krId)
-                .orElseThrow(() -> new RuntimeException("这个KR不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.KEY_RESULT_NOT_FOUND));
 
-        if (!keyResult.getObjective().getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("你没有权限更新这个KR");
+        Long userId = user.getId();
+        if (userId == null || !keyResult.getObjective().getUser().getId().equals(userId)) {
+            throw new BusinessException(ErrorCode.NO_PERMISSION);
         }
 
         keyResult.setTitle(updatedKeyResult.getTitle());
@@ -58,10 +63,11 @@ public class KeyResultService {
 
     public void deleteKeyResult(Long krId, User user) {
         KeyResult keyResult = keyResultRepository.findById(krId)
-                .orElseThrow(() -> new RuntimeException("这个KR不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.KEY_RESULT_NOT_FOUND));
 
-        if (!keyResult.getObjective().getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("你没有权限删除这个KR");
+        Long userId = user.getId();
+        if (userId == null || !keyResult.getObjective().getUser().getId().equals(userId)) {
+            throw new BusinessException(ErrorCode.NO_PERMISSION);
         }
 
         keyResultRepository.delete(keyResult);

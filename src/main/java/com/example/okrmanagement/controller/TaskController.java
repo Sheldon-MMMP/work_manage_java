@@ -1,5 +1,6 @@
 package com.example.okrmanagement.controller;
 
+import com.example.okrmanagement.common.TypeValidator;
 import com.example.okrmanagement.dto.SuccessResponse;
 import com.example.okrmanagement.entity.Task;
 import com.example.okrmanagement.entity.User;
@@ -20,57 +21,65 @@ public class TaskController {
     private TaskService taskService;
 
     @PostMapping("/{krId}/tasks")
-    public SuccessResponse createTask(@PathVariable Long krId, @RequestBody Task task, Authentication authentication) {
+    public SuccessResponse createTask(@PathVariable String krId, @RequestBody Task task, Authentication authentication) {
+        TypeValidator.validatePathParam("krId", krId, Long.class);
+        Long parsedKrId = Long.parseLong(krId);
         User user = (User) authentication.getPrincipal();
-        log.info("Creating task for KR {} by user {}", krId, user.getUsername());
+        log.info("Creating task for KR {} by user {}", parsedKrId, user.getUsername());
         try {
-            Task newTask = taskService.createTask(krId, task, user);
+            Task newTask = taskService.createTask(parsedKrId, task, user);
             log.info("Task created successfully: {}", newTask.getId());
             return new SuccessResponse(newTask);
         } catch (Exception e) {
-            log.error("Create task failed for KR {} by user {}", krId, user.getUsername(), e);
+            log.error("Create task failed for KR {} by user {}", parsedKrId, user.getUsername(), e);
             throw e;
         }
     }
 
     @GetMapping("/{krId}/tasks")
-    public SuccessResponse getTasks(@PathVariable Long krId, Authentication authentication) {
+    public SuccessResponse getTasks(@PathVariable String krId, Authentication authentication) {
+        TypeValidator.validatePathParam("krId", krId, Long.class);
+        Long parsedKrId = Long.parseLong(krId);
         User user = (User) authentication.getPrincipal();
-        log.info("Getting tasks for KR {} by user {}", krId, user.getUsername());
+        log.info("Getting tasks for KR {} by user {}", parsedKrId, user.getUsername());
         try {
-            List<Task> tasks = taskService.getTasks(krId, user);
-            log.info("Got {} tasks for KR {}", tasks.size(), krId);
+            List<Task> tasks = taskService.getTasks(parsedKrId, user);
+            log.info("Got {} tasks for KR {}", tasks.size(), parsedKrId);
             return new SuccessResponse(tasks);
         } catch (Exception e) {
-            log.error("Get tasks failed for KR {} by user {}", krId, user.getUsername(), e);
+            log.error("Get tasks failed for KR {} by user {}", parsedKrId, user.getUsername(), e);
             throw e;
         }
     }
 
     @PutMapping("/tasks/{id}")
-    public SuccessResponse updateTask(@PathVariable Long id, @RequestBody Task task, Authentication authentication) {
+    public SuccessResponse updateTask(@PathVariable String id, @RequestBody Task task, Authentication authentication) {
+        TypeValidator.validatePathParam("id", id, Long.class);
+        Long parsedId = Long.parseLong(id);
         User user = (User) authentication.getPrincipal();
-        log.info("Updating task {} by user {}", id, user.getUsername());
+        log.info("Updating task {} by user {}", parsedId, user.getUsername());
         try {
-            Task updatedTask = taskService.updateTask(id, task, user);
+            Task updatedTask = taskService.updateTask(parsedId, task, user);
             log.info("Task updated successfully: {}", updatedTask.getId());
             return new SuccessResponse(updatedTask);
         } catch (Exception e) {
-            log.error("Update task failed for id {} by user {}", id, user.getUsername(), e);
+            log.error("Update task failed for id {} by user {}", parsedId, user.getUsername(), e);
             throw e;
         }
     }
 
     @DeleteMapping("/tasks/{id}")
-    public SuccessResponse deleteTask(@PathVariable Long id, Authentication authentication) {
+    public SuccessResponse deleteTask(@PathVariable String id, Authentication authentication) {
+        TypeValidator.validatePathParam("id", id, Long.class);
+        Long parsedId = Long.parseLong(id);
         User user = (User) authentication.getPrincipal();
-        log.info("Deleting task {} by user {}", id, user.getUsername());
+        log.info("Deleting task {} by user {}", parsedId, user.getUsername());
         try {
-            taskService.deleteTask(id, user);
-            log.info("Task deleted successfully: {}", id);
+            taskService.deleteTask(parsedId, user);
+            log.info("Task deleted successfully: {}", parsedId);
             return new SuccessResponse();
         } catch (Exception e) {
-            log.error("Delete task failed for id {} by user {}", id, user.getUsername(), e);
+            log.error("Delete task failed for id {} by user {}", parsedId, user.getUsername(), e);
             throw e;
         }
     }

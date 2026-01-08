@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import com.example.okrmanagement.exception.BusinessException;
+import com.example.okrmanagement.common.ErrorCode;
 
 @Service
 public class AnniversaryService {
@@ -24,10 +26,11 @@ public class AnniversaryService {
 
     public Anniversary updateAnniversary(Long anniversaryId, Anniversary updatedAnniversary, User user) {
         Anniversary anniversary = anniversaryRepository.findById(anniversaryId)
-                .orElseThrow(() -> new RuntimeException("Anniversary not found"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.ANNIVERSARY_NOT_FOUND));
 
-        if (!anniversary.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("You don't have permission to update this anniversary");
+        Long userId = user.getId();
+        if (userId == null || !anniversary.getUser().getId().equals(userId)) {
+            throw new BusinessException(ErrorCode.NO_PERMISSION);
         }
 
         anniversary.setTitle(updatedAnniversary.getTitle());
@@ -40,10 +43,11 @@ public class AnniversaryService {
 
     public void deleteAnniversary(Long anniversaryId, User user) {
         Anniversary anniversary = anniversaryRepository.findById(anniversaryId)
-                .orElseThrow(() -> new RuntimeException("Anniversary not found"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.ANNIVERSARY_NOT_FOUND));
 
-        if (!anniversary.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("You don't have permission to delete this anniversary");
+        Long userId = user.getId();
+        if (userId == null || !anniversary.getUser().getId().equals(userId)) {
+            throw new BusinessException(ErrorCode.NO_PERMISSION);
         }
 
         anniversaryRepository.delete(anniversary);

@@ -1,5 +1,6 @@
 package com.example.okrmanagement.controller;
 
+import com.example.okrmanagement.common.TypeValidator;
 import com.example.okrmanagement.dto.SuccessResponse;
 import com.example.okrmanagement.entity.Anniversary;
 import com.example.okrmanagement.entity.User;
@@ -48,29 +49,33 @@ public class AnniversaryController {
     }
 
     @PutMapping("/{id}")
-    public SuccessResponse updateAnniversary(@PathVariable Long id, @RequestBody Anniversary anniversary, Authentication authentication) {
+    public SuccessResponse updateAnniversary(@PathVariable String id, @RequestBody Anniversary anniversary, Authentication authentication) {
+        TypeValidator.validatePathParam("id", id, Long.class);
+        Long parsedId = Long.parseLong(id);
         User user = (User) authentication.getPrincipal();
-        log.info("Updating anniversary {} by user: {}", id, user.getUsername());
+        log.info("Updating anniversary {} by user: {}", parsedId, user.getUsername());
         try {
-            Anniversary updatedAnniversary = anniversaryService.updateAnniversary(id, anniversary, user);
+            Anniversary updatedAnniversary = anniversaryService.updateAnniversary(parsedId, anniversary, user);
             log.info("Anniversary updated successfully: {}", updatedAnniversary.getId());
             return new SuccessResponse(updatedAnniversary);
         } catch (Exception e) {
-            log.error("Update anniversary failed for id {} by user: {}", id, user.getUsername(), e);
+            log.error("Update anniversary failed for id {} by user: {}", parsedId, user.getUsername(), e);
             throw e;
         }
     }
 
     @DeleteMapping("/{id}")
-    public SuccessResponse deleteAnniversary(@PathVariable Long id, Authentication authentication) {
+    public SuccessResponse deleteAnniversary(@PathVariable String id, Authentication authentication) {
+        TypeValidator.validatePathParam("id", id, Long.class);
+        Long parsedId = Long.parseLong(id);
         User user = (User) authentication.getPrincipal();
-        log.info("Deleting anniversary {} by user: {}", id, user.getUsername());
+        log.info("Deleting anniversary {} by user: {}", parsedId, user.getUsername());
         try {
-            anniversaryService.deleteAnniversary(id, user);
-            log.info("Anniversary deleted successfully: {}", id);
+            anniversaryService.deleteAnniversary(parsedId, user);
+            log.info("Anniversary deleted successfully: {}", parsedId);
             return new SuccessResponse();
         } catch (Exception e) {
-            log.error("Delete anniversary failed for id {} by user: {}", id, user.getUsername(), e);
+            log.error("Delete anniversary failed for id {} by user: {}", parsedId, user.getUsername(), e);
             throw e;
         }
     }

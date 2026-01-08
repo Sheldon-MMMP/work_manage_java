@@ -39,21 +39,18 @@ public class GlobalExceptionHandler {
             }
         } else if (message.contains("permission")) {
             errorCode = ErrorCode.NO_PERMISSION;
-        } else if (message.contains("exists")) {
-            if (message.contains("username")) {
-                errorCode = ErrorCode.USERNAME_EXISTS;
-            } else if (message.contains("email")) {
-                errorCode = ErrorCode.EMAIL_EXISTS;
-            } else {
-                errorCode = ErrorCode.USERNAME_EXISTS;
-            }
-        } else if (message.contains("Bad credentials")) {
+        } 
+         else if (message.contains("Bad credentials")) {
             errorCode = ErrorCode.BAD_CREDENTIALS;
         } else {
             errorCode = ErrorCode.INVALID_PARAMETER;
         }
+
+        if (message == null || message.trim().isEmpty()) {
+            message = errorCode.getMessage();
+        }
         
-        ErrorResponse errorResponse = new ErrorResponse(errorCode.getCode(), errorCode.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(errorCode.getCode(), message);
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 

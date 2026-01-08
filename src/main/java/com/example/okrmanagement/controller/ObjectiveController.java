@@ -1,5 +1,6 @@
 package com.example.okrmanagement.controller;
 
+import com.example.okrmanagement.common.TypeValidator;
 import com.example.okrmanagement.dto.SuccessResponse;
 import com.example.okrmanagement.entity.Objective;
 import com.example.okrmanagement.entity.User;
@@ -62,43 +63,49 @@ public class ObjectiveController {
     }
 
     @PutMapping("/objectives/{id}")
-    public SuccessResponse updateObjective(@PathVariable Long id, @RequestBody Objective objective, Authentication authentication) {
+    public SuccessResponse updateObjective(@PathVariable String id, @RequestBody Objective objective, Authentication authentication) {
+        TypeValidator.validatePathParam("id", id, Long.class);
+        Long parsedId = Long.parseLong(id);
         User user = (User) authentication.getPrincipal();
-        log.info("Updating objective {} by user: {}", id, user.getUsername());
+        log.info("Updating objective {} by user: {}", parsedId, user.getUsername());
         try {
-            Objective updatedObjective = objectiveService.updateObjective(id, objective, user);
+            Objective updatedObjective = objectiveService.updateObjective(parsedId, objective, user);
             log.info("Objective updated successfully: {}", updatedObjective.getId());
             return new SuccessResponse(updatedObjective);
         } catch (Exception e) {
-            log.error("Update objective failed for id {} by user: {}", id, user.getUsername(), e);
+            log.error("Update objective failed for id {} by user: {}", parsedId, user.getUsername(), e);
             throw e;
         }
     }
 
     @DeleteMapping("/objectives/{id}")
-    public SuccessResponse deleteObjective(@PathVariable Long id, Authentication authentication) {
+    public SuccessResponse deleteObjective(@PathVariable String id, Authentication authentication) {
+        TypeValidator.validatePathParam("id", id, Long.class);
+        Long parsedId = Long.parseLong(id);
         User user = (User) authentication.getPrincipal();
-        log.info("Deleting objective {} by user: {}", id, user.getUsername());
+        log.info("Deleting objective {} by user: {}", parsedId, user.getUsername());
         try {
-            objectiveService.deleteObjective(id, user);
-            log.info("Objective deleted successfully: {}", id);
+            objectiveService.deleteObjective(parsedId, user);
+            log.info("Objective deleted successfully: {}", parsedId);
             return new SuccessResponse();
         } catch (Exception e) {
-            log.error("Delete objective failed for id {} by user: {}", id, user.getUsername(), e);
+            log.error("Delete objective failed for id {} by user: {}", parsedId, user.getUsername(), e);
             throw e;
         }
     }
 
     @PutMapping("/objectives/{id}/archive")
-    public SuccessResponse archiveObjective(@PathVariable Long id, Authentication authentication) {
+    public SuccessResponse archiveObjective(@PathVariable String id, Authentication authentication) {
+        TypeValidator.validatePathParam("id", id, Long.class);
+        Long parsedId = Long.parseLong(id);
         User user = (User) authentication.getPrincipal();
-        log.info("Archiving objective {} by user: {}", id, user.getUsername());
+        log.info("Archiving objective {} by user: {}", parsedId, user.getUsername());
         try {
-            Objective archivedObjective = objectiveService.archiveObjective(id, user);
+            Objective archivedObjective = objectiveService.archiveObjective(parsedId, user);
             log.info("Objective archived successfully: {}", archivedObjective.getId());
             return new SuccessResponse(archivedObjective);
         } catch (Exception e) {
-            log.error("Archive objective failed for id {} by user: {}", id, user.getUsername(), e);
+            log.error("Archive objective failed for id {} by user: {}", parsedId, user.getUsername(), e);
             throw e;
         }
     }

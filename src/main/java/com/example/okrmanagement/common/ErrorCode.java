@@ -8,7 +8,6 @@ import lombok.Getter;
 public enum ErrorCode {
     // 业务逻辑错误 - 用户操作
     USER_NOT_FOUND(11001, "用户不存在"),
-    USERNAME_EXISTS(11002, "用户名已存在"),
     EMAIL_EXISTS(11003, "邮箱已被使用"),
     BAD_CREDENTIALS(11004, "用户名或密码错误"),
     NO_PERMISSION(11005, "没有操作权限"),
@@ -17,6 +16,7 @@ public enum ErrorCode {
     TASK_NOT_FOUND(11008, "任务不存在"),
     ANNIVERSARY_NOT_FOUND(11009, "纪念日不存在"),
     TIME_RECORD_NOT_FOUND(11010, "时间记录不存在"),
+    INVALID_FIELD_TYPE(11011, "字段 '%s' 类型不匹配。期望类型为 '%s'，但输入值为 '%s'"),
     
     // 参数错误 - 用户操作
     INVALID_PARAMETER(21100, "参数无效"),

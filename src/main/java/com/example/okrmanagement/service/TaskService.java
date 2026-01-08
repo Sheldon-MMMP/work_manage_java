@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import com.example.okrmanagement.exception.BusinessException;
+import com.example.okrmanagement.common.ErrorCode;
 
 @Service
 public class TaskService {
@@ -20,10 +22,11 @@ public class TaskService {
 
     public Task createTask(Long krId, Task task, User user) {
         KeyResult keyResult = keyResultRepository.findById(krId)
-                .orElseThrow(() -> new RuntimeException("这个KR不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.KEY_RESULT_NOT_FOUND));
 
-        if (!keyResult.getObjective().getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("你没有权限添加任务到这个KR");
+        Long userId = user.getId();
+        if (userId == null || !keyResult.getObjective().getUser().getId().equals(userId)) {
+            throw new BusinessException(ErrorCode.NO_PERMISSION);
         }
 
         task.setKeyResult(keyResult);
@@ -33,10 +36,11 @@ public class TaskService {
 
     public List<Task> getTasks(Long krId, User user) {
         KeyResult keyResult = keyResultRepository.findById(krId)
-                .orElseThrow(() -> new RuntimeException("这个KR不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.KEY_RESULT_NOT_FOUND));
 
-        if (!keyResult.getObjective().getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("你没有权限查看这个KR的任务");
+        Long userId = user.getId();
+        if (userId == null || !keyResult.getObjective().getUser().getId().equals(userId)) {
+            throw new BusinessException(ErrorCode.NO_PERMISSION);
         }
 
         return taskRepository.findByKeyResultId(krId);
@@ -44,10 +48,11 @@ public class TaskService {
 
     public Task updateTask(Long taskId, Task updatedTask, User user) {
         Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new RuntimeException("这个任务不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.TASK_NOT_FOUND));
 
-        if (!task.getKeyResult().getObjective().getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("你没有权限更新这个任务");
+        Long userId = user.getId();
+        if (userId == null || !task.getKeyResult().getObjective().getUser().getId().equals(userId)) {
+            throw new BusinessException(ErrorCode.NO_PERMISSION);
         }
 
         task.setTitle(updatedTask.getTitle());
@@ -61,10 +66,11 @@ public class TaskService {
 
     public void deleteTask(Long taskId, User user) {
         Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new RuntimeException("这个任务不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.TASK_NOT_FOUND));
 
-        if (!task.getKeyResult().getObjective().getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("你没有权限删除这个任务");
+        Long userId = user.getId();
+        if (userId == null || !task.getKeyResult().getObjective().getUser().getId().equals(userId)) {
+            throw new BusinessException(ErrorCode.NO_PERMISSION);
         }
 
         taskRepository.delete(task);

@@ -9,10 +9,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import com.example.okrmanagement.exception.BusinessException;
+import com.example.okrmanagement.common.ErrorCode;
 
 @Service
 public class TimeRecordService {
@@ -24,10 +25,11 @@ public class TimeRecordService {
 
     public TimeRecord recordTime(Long taskId, TimeRecord timeRecord, User user) {
         Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new RuntimeException("Task not found"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.TASK_NOT_FOUND));
 
-        if (!task.getKeyResult().getObjective().getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("You don't have permission to record time for this task");
+        Long userId = user.getId();
+        if (userId == null || !task.getKeyResult().getObjective().getUser().getId().equals(userId)) {
+            throw new BusinessException(ErrorCode.NO_PERMISSION);
         }
 
         timeRecord.setTask(task);
@@ -36,15 +38,27 @@ public class TimeRecordService {
     }
 
     public List<TimeRecord> getRecentTimeRecords(User user) {
-        return timeRecordRepository.findByUserIdOrderByStartTimeDesc(user.getId());
+        Long userId = user.getId();
+        if (userId == null) {
+            throw new BusinessException(ErrorCode.INVALID_PARAMETER);
+        }
+        return timeRecordRepository.findByUserIdOrderByStartTimeDesc(userId);
     }
 
     public List<TimeRecord> getTodayTimeRecords(User user) {
-        return timeRecordRepository.findTodayRecordsByUserId(user.getId());
+        Long userId = user.getId();
+        if (userId == null) {
+            throw new BusinessException(ErrorCode.INVALID_PARAMETER);
+        }
+        return timeRecordRepository.findTodayRecordsByUserId(userId);
     }
 
     public Map<String, Object> getTodaySummary(User user) {
-        List<TimeRecord> todayRecords = timeRecordRepository.findTodayRecordsByUserId(user.getId());
+        Long userId = user.getId();
+        if (userId == null) {
+            throw new BusinessException(ErrorCode.INVALID_PARAMETER);
+        }
+        List<TimeRecord> todayRecords = timeRecordRepository.findTodayRecordsByUserId(userId);
 
         // 计算总时长
         Duration totalDuration = todayRecords.stream()

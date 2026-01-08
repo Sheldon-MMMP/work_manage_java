@@ -1,5 +1,6 @@
 package com.example.okrmanagement.controller;
 
+import com.example.okrmanagement.common.TypeValidator;
 import com.example.okrmanagement.dto.SuccessResponse;
 import com.example.okrmanagement.entity.TimeRecord;
 import com.example.okrmanagement.entity.User;
@@ -21,15 +22,17 @@ public class TimeRecordController {
     private TimeRecordService timeRecordService;
 
     @PostMapping("/record/{taskId}")
-    public SuccessResponse recordTime(@PathVariable Long taskId, @RequestBody TimeRecord timeRecord, Authentication authentication) {
+    public SuccessResponse recordTime(@PathVariable String taskId, @RequestBody TimeRecord timeRecord, Authentication authentication) {
+        TypeValidator.validatePathParam("taskId", taskId, Long.class);
+        Long parsedTaskId = Long.parseLong(taskId);
         User user = (User) authentication.getPrincipal();
-        log.info("Recording time for task {} by user {}", taskId, user.getUsername());
+        log.info("Recording time for task {} by user {}", parsedTaskId, user.getUsername());
         try {
-            TimeRecord newTimeRecord = timeRecordService.recordTime(taskId, timeRecord, user);
+            TimeRecord newTimeRecord = timeRecordService.recordTime(parsedTaskId, timeRecord, user);
             log.info("Time record created successfully: {}", newTimeRecord.getId());
             return new SuccessResponse(newTimeRecord);
         } catch (Exception e) {
-            log.error("Record time failed for task {} by user {}", taskId, user.getUsername(), e);
+            log.error("Record time failed for task {} by user {}", parsedTaskId, user.getUsername(), e);
             throw e;
         }
     }
