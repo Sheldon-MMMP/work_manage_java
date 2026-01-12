@@ -51,8 +51,8 @@
 
 
 ## OpenAPI JSON 文档
-- 完整链接： http://localhost:8081/v3/api-docs
+- 完整链接： http://localhost:8080/v3/api-docs
 
 ## Swagger UI
-完整链接：http://localhost:8081/swagger-ui.html
-替代链接：http://localhost:8081/swagger-ui/index.html
+完整链接：http://localhost:8080/swagger-ui.html
+替代链接：http://localhost:8080/swagger-ui/index.html

@@ -17,7 +17,10 @@ public enum ErrorCode {
     ANNIVERSARY_NOT_FOUND(11009, "纪念日不存在"),
     TIME_RECORD_NOT_FOUND(11010, "时间记录不存在"),
     INVALID_FIELD_TYPE(11011, "字段 '%s' 类型不匹配。期望类型为 '%s'，但输入值为 '%s'"),
-    
+    INVALID_AVATAR_FILE(11012, "无效的头像文件"),
+    // 头像获取失败
+    AVATAR_NOT_FOUND(11013, "头像不存在"),
+
     // 参数错误 - 用户操作
     INVALID_PARAMETER(21100, "参数无效"),
     MISSING_PARAMETER(21101, "缺少必要参数"),

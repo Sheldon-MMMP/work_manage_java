@@ -52,7 +52,7 @@ public class AuthController {
             SecurityContextHolder.getContext().setAuthentication(authentication);
             String jwt = jwtUtils.generateJwtToken(authentication);
 
-            JwtResponse jwtResponse = new JwtResponse(jwt, user.getUsername(), user.getEmail());
+            JwtResponse jwtResponse = new JwtResponse(jwt, user.getUsername(), user.getEmail(), user.getAvatar());
             log.info("User automatically logged in after registration: {}", user.getEmail());
             return ResponseEntity.ok(new SuccessResponse(jwtResponse));
         } catch (Exception e) {
@@ -76,7 +76,7 @@ public class AuthController {
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
             User user = (User) userDetails;
 
-            JwtResponse jwtResponse = new JwtResponse(jwt, user.getUsername(), user.getEmail());
+            JwtResponse jwtResponse = new JwtResponse(jwt, user.getUsername(), user.getEmail(), user.getAvatar());
             log.info("User logged in successfully: {}", user.getEmail());
             return ResponseEntity.ok(new SuccessResponse(jwtResponse));
         } catch (Exception e) {

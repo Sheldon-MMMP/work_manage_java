@@ -34,6 +34,9 @@ public class User implements UserDetails {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "avatar")
+    private String avatar;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
