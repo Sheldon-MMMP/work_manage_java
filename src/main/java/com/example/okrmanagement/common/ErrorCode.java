@@ -27,6 +27,12 @@ public enum ErrorCode {
     INVALID_USERNAME(21102, "用户名格式错误"),
     INVALID_EMAIL(21103, "邮箱格式错误"),
     INVALID_PASSWORD(21104, "密码格式错误"),
+    INVALID_AVATAR_TYPE(21105, "只能上传图片格式:jpg, jpeg, png"),
+    FILE_UPLOAD_FAILED(21106, "文件上传失败"),
+    // token已经过期，需要重新登录
+    TOKEN_EXPIRED(21107, "登录已过期，请重新登录"),
+    // token无效
+    INVALID_TOKEN(21108, "无效的token"),
     
     // 系统错误 - 系统操作
     SYSTEM_ERROR(32200, "系统内部错误"),

@@ -70,8 +70,7 @@ public class TimeRecordService {
                 .collect(Collectors.groupingBy(
                         record -> record.getTask().getTitle(),
                         Collectors.mapping(record -> Duration.between(record.getStartTime(), record.getEndTime()),
-                                Collectors.reducing(Duration.ZERO, Duration::plus))
-                ));
+                                Collectors.reducing(Duration.ZERO, Duration::plus))));
 
         // 转换为小时和分钟
         long totalMinutes = totalDuration.toMinutes();
@@ -88,9 +87,6 @@ public class TimeRecordService {
                                 Map.Entry::getKey,
                                 entry -> Map.of(
                                         "hours", entry.getValue().toHours(),
-                                        "minutes", entry.getValue().toMinutes() % 60
-                                )
-                        ))
-        );
+                                        "minutes", entry.getValue().toMinutes() % 60))));
     }
 }

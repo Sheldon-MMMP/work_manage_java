@@ -17,6 +17,9 @@ import org.springframework.util.StringUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.example.okrmanagement.exception.BusinessException;
+import com.example.okrmanagement.common.ErrorCode;
+
 import java.io.IOException;
 
 @Component
@@ -34,21 +37,41 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         try {
             String jwt = parseJwt(request);
-            if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
-                String email = jwtUtils.getEmailFromJwtToken(jwt);
+            if (jwt != null) {
+                // 直接调用getUuIdFromJwtToken，它会抛出JWT异常
+                String uuId = jwtUtils.getUuIdFromJwtToken(jwt);
 
-                UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+                UserDetails userDetails = userDetailsService.loadUserByUsername(uuId);
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.getAuthorities());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
-        } catch (Exception e) {
+            filterChain.doFilter(request, response);
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            logger.error("JWT token is expired: {}", e.getMessage());
+            sendErrorResponse(response, ErrorCode.TOKEN_EXPIRED);
+        } catch (io.jsonwebtoken.UnsupportedJwtException | io.jsonwebtoken.MalformedJwtException | io.jsonwebtoken.SignatureException | IllegalArgumentException e) {
+            logger.error("JWT token is invalid: {}", e.getMessage());
+            sendErrorResponse(response, ErrorCode.INVALID_TOKEN);
+        } catch (BusinessException e) {
             logger.error("Cannot set user authentication: {}", e.getMessage());
+            sendErrorResponse(response, e.getCode(), e.getMessage());
         }
+    }
 
-        filterChain.doFilter(request, response);
+    private void sendErrorResponse(HttpServletResponse response, ErrorCode errorCode) throws IOException {
+        sendErrorResponse(response, errorCode.getCode(), errorCode.getMessage());
+    }
+
+    private void sendErrorResponse(HttpServletResponse response, int code, String message) throws IOException {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        
+        String json = String.format("{\"code\": %d, \"message\": \"%s\", \"data\": null}", code, message);
+        response.getWriter().write(json);
     }
 
     private String parseJwt(HttpServletRequest request) {

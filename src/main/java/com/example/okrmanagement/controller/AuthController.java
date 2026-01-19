@@ -12,7 +12,6 @@ import jakarta.validation.Valid;
 import com.example.okrmanagement.security.JwtUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -37,7 +36,7 @@ public class AuthController {
     private JwtUtils jwtUtils;
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest registerRequest,
+    public SuccessResponse register(@Valid @RequestBody RegisterRequest registerRequest,
             BindingResult bindingResult) {
         try {
             VerificExceptionHandler.handleVerificationException(bindingResult);
@@ -52,9 +51,10 @@ public class AuthController {
             SecurityContextHolder.getContext().setAuthentication(authentication);
             String jwt = jwtUtils.generateJwtToken(authentication);
 
-            JwtResponse jwtResponse = new JwtResponse(jwt, user.getUsername(), user.getEmail(), user.getAvatar());
+            java.util.Map<String, String> data = new java.util.HashMap<>();
+            data.put("token", jwt);
             log.info("User automatically logged in after registration: {}", user.getEmail());
-            return ResponseEntity.ok(new SuccessResponse(jwtResponse));
+            return new SuccessResponse(data);
         } catch (Exception e) {
             log.error("Register failed for email: {}", registerRequest.getEmail());
             throw e;
@@ -62,7 +62,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginRequest, BindingResult bindingResult) {
+    public SuccessResponse login(@Valid @RequestBody LoginRequest loginRequest, BindingResult bindingResult) {
         log.info("Login attempt for email: {}", loginRequest.getEmail());
         try {
             // 判断是否有错误
@@ -76,9 +76,10 @@ public class AuthController {
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
             User user = (User) userDetails;
 
-            JwtResponse jwtResponse = new JwtResponse(jwt, user.getUsername(), user.getEmail(), user.getAvatar());
             log.info("User logged in successfully: {}", user.getEmail());
-            return ResponseEntity.ok(new SuccessResponse(jwtResponse));
+            java.util.Map<String, String> data = new java.util.HashMap<>();
+            data.put("token", jwt);
+            return new SuccessResponse(data);
         } catch (Exception e) {
             log.error("Login failed for email: {}", loginRequest.getEmail());
             throw e;
