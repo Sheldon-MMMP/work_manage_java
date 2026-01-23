@@ -15,14 +15,26 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String identifier) throws UsernameNotFoundException {
-        // 先尝试通过uuId查找用户
-        User user = userRepository.findByUuId(identifier)
-                .orElseGet(() -> 
-                    // 如果uuId找不到，尝试通过email查找用户
-                    userRepository.findByEmail(identifier)
-                            .orElseThrow(() -> new UsernameNotFoundException("User Not Found with identifier: " + identifier))
-                );
+        User user;
+        
+        // Check if identifier is a numeric string (old tokens used userId as subject)
+        if (identifier.matches("\\d+")) {
+            // Treat as userId
+            Long userId = Long.parseLong(identifier);
+            user = userRepository.findById(userId)
+                    .orElseThrow(() -> new UsernameNotFoundException("User Not Found with id: " + userId));
+        } else {
+            // Treat as email
+            user = userRepository.findByEmail(identifier)
+                    .orElseThrow(() -> new UsernameNotFoundException("User Not Found with email: " + identifier));
+        }
 
         return user;
+    }
+
+    public UserDetails loadUserById(Long id) throws UsernameNotFoundException {
+        // 直接通过id查找用户，User实体已实现UserDetails，直接返回即可
+        return userRepository.findById(id)
+                .orElseThrow(() -> new UsernameNotFoundException("User Not Found with id: " + id));
     }
 }

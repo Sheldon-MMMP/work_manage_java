@@ -25,7 +25,7 @@ public class ObjectiveController {
         User user = (User) authentication.getPrincipal();
         log.info("Creating objective by user: {}", user.getUsername());
         try {
-            Objective newObjective = objectiveService.createObjective(objective, user);
+            Objective newObjective = objectiveService.createObjective(objective);
             log.info("Objective created successfully: {}", newObjective.getId());
             return new SuccessResponse(newObjective);
         } catch (Exception e) {
@@ -39,7 +39,7 @@ public class ObjectiveController {
         User user = (User) authentication.getPrincipal();
         log.info("Getting active objectives for user: {}", user.getUsername());
         try {
-            List<Objective> objectives = objectiveService.getActiveObjectives(user);
+            List<Objective> objectives = objectiveService.getActiveObjectives();
             log.info("Got {} active objectives for user: {}", objectives.size(), user.getUsername());
             return new SuccessResponse(objectives);
         } catch (Exception e) {
@@ -53,7 +53,7 @@ public class ObjectiveController {
         User user = (User) authentication.getPrincipal();
         log.info("Getting all objectives for user: {}", user.getUsername());
         try {
-            List<Objective> objectives = objectiveService.getAllObjectives(user);
+            List<Objective> objectives = objectiveService.getAllObjectives();
             log.info("Got {} objectives for user: {}", objectives.size(), user.getUsername());
             return new SuccessResponse(objectives);
         } catch (Exception e) {
@@ -69,7 +69,7 @@ public class ObjectiveController {
         User user = (User) authentication.getPrincipal();
         log.info("Updating objective {} by user: {}", parsedId, user.getUsername());
         try {
-            Objective updatedObjective = objectiveService.updateObjective(parsedId, objective, user);
+            Objective updatedObjective = objectiveService.updateObjective(parsedId, objective);
             log.info("Objective updated successfully: {}", updatedObjective.getId());
             return new SuccessResponse(updatedObjective);
         } catch (Exception e) {
@@ -85,14 +85,14 @@ public class ObjectiveController {
         User user = (User) authentication.getPrincipal();
         log.info("Deleting objective {} by user: {}", parsedId, user.getUsername());
         try {
-            objectiveService.deleteObjective(parsedId, user);
+            objectiveService.deleteObjective(parsedId);
             log.info("Objective deleted successfully: {}", parsedId);
             return new SuccessResponse();
         } catch (Exception e) {
             log.error("Delete objective failed for id {} by user: {}", parsedId, user.getUsername(), e);
             throw e;
         }
-    }
+    
 
     @PutMapping("/objectives/{id}/archive")
     public SuccessResponse archiveObjective(@PathVariable String id, Authentication authentication) {
@@ -101,11 +101,27 @@ public class ObjectiveController {
         User user = (User) authentication.getPrincipal();
         log.info("Archiving objective {} by user: {}", parsedId, user.getUsername());
         try {
-            Objective archivedObjective = objectiveService.archiveObjective(parsedId, user);
+            Objective archivedObjective = objectiveService.archiveObjective(parsedId);
             log.info("Objective archived successfully: {}", archivedObjective.getId());
             return new SuccessResponse(archivedObjective);
         } catch (Exception e) {
             log.error("Archive objective failed for id {} by user: {}", parsedId, user.getUsername(), e);
+            throw e;
+        }
+    }
+
+    @GetMapping("/objectives/{id}")
+    public SuccessResponse getObjectiveById(@PathVariable String id, Authentication authentication) {
+        TypeValidator.validatePathParam("id", id, Long.class);
+        Long parsedId = Long.parseLong(id);
+        User user = (User) authentication.getPrincipal();
+        log.info("Getting objective {} by user: {}", parsedId, user.getUsername());
+        try {
+            Objective objective = objectiveService.getObjectiveById(parsedId);
+            log.info("Got objective {} by user: {}", parsedId, user.getUsername());
+            return new SuccessResponse(objective);
+        } catch (Exception e) {
+            log.error("Get objective failed for id {} by user: {}", parsedId, user.getUsername(), e);
             throw e;
         }
     }

@@ -49,14 +49,9 @@ public class User implements UserDetails {
     @Column(name = "avatar")
     private String avatar;
 
-    @Column(name = "uu_id", nullable = false, unique = true)
-    @JsonIgnore
-    private String uuId;
-
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
-        uuId = java.util.UUID.randomUUID().toString();
     }
 
     @PreUpdate

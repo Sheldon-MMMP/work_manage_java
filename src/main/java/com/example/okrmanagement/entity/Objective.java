@@ -4,8 +4,13 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.List;
+
 
 @Data
 @NoArgsConstructor
@@ -16,9 +21,9 @@ public class Objective {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @Column(name = "user_id", nullable = false)
+    @JsonIgnore
+    private Long userId;
 
     @Column(nullable = false)
     private String title;
@@ -31,6 +36,12 @@ public class Objective {
 
     private String award;
 
+    // 开始时间和结束日期
+    @Column(name = "start_date")
+    private LocalDate startDate;
+    @Column(name = "end_date")
+    private LocalDate endDate;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
@@ -38,6 +49,7 @@ public class Objective {
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "objective", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private List<KeyResult> keyResults;
 
     @PrePersist

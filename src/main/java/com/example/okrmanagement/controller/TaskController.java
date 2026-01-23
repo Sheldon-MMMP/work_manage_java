@@ -27,7 +27,7 @@ public class TaskController {
         User user = (User) authentication.getPrincipal();
         log.info("Creating task for KR {} by user {}", parsedKrId, user.getUsername());
         try {
-            Task newTask = taskService.createTask(parsedKrId, task, user);
+            Task newTask = taskService.createTask(parsedKrId, task);
             log.info("Task created successfully: {}", newTask.getId());
             return new SuccessResponse(newTask);
         } catch (Exception e) {
@@ -43,7 +43,7 @@ public class TaskController {
         User user = (User) authentication.getPrincipal();
         log.info("Getting tasks for KR {} by user {}", parsedKrId, user.getUsername());
         try {
-            List<Task> tasks = taskService.getTasks(parsedKrId, user);
+            List<Task> tasks = taskService.getTasks(parsedKrId);
             log.info("Got {} tasks for KR {}", tasks.size(), parsedKrId);
             return new SuccessResponse(tasks);
         } catch (Exception e) {
@@ -59,7 +59,7 @@ public class TaskController {
         User user = (User) authentication.getPrincipal();
         log.info("Updating task {} by user {}", parsedId, user.getUsername());
         try {
-            Task updatedTask = taskService.updateTask(parsedId, task, user);
+            Task updatedTask = taskService.updateTask(parsedId, task);
             log.info("Task updated successfully: {}", updatedTask.getId());
             return new SuccessResponse(updatedTask);
         } catch (Exception e) {
@@ -75,7 +75,7 @@ public class TaskController {
         User user = (User) authentication.getPrincipal();
         log.info("Deleting task {} by user {}", parsedId, user.getUsername());
         try {
-            taskService.deleteTask(parsedId, user);
+            taskService.deleteTask(parsedId);
             log.info("Task deleted successfully: {}", parsedId);
             return new SuccessResponse();
         } catch (Exception e) {

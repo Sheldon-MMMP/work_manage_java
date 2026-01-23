@@ -27,7 +27,7 @@ public class KeyResultController {
         User user = (User) authentication.getPrincipal();
         log.info("Creating key result for objective {} by user {}", parsedObjectiveId, user.getUsername());
         try {
-            KeyResult newKeyResult = keyResultService.createKeyResult(parsedObjectiveId, keyResult, user);
+            KeyResult newKeyResult = keyResultService.createKeyResult(parsedObjectiveId, keyResult);
             log.info("Key result created successfully: {}", newKeyResult.getId());
             return new SuccessResponse(newKeyResult);
         } catch (Exception e) {
@@ -43,7 +43,7 @@ public class KeyResultController {
         User user = (User) authentication.getPrincipal();
         log.info("Getting key results for objective {} by user {}", parsedObjectiveId, user.getUsername());
         try {
-            List<KeyResult> keyResults = keyResultService.getKeyResults(parsedObjectiveId, user);
+            List<KeyResult> keyResults = keyResultService.getKeyResults(parsedObjectiveId);
             log.info("Got {} key results for objective {}", keyResults.size(), parsedObjectiveId);
             return new SuccessResponse(keyResults);
         } catch (Exception e) {
@@ -59,7 +59,7 @@ public class KeyResultController {
         User user = (User) authentication.getPrincipal();
         log.info("Updating key result {} by user {}", parsedId, user.getUsername());
         try {
-            KeyResult updatedKeyResult = keyResultService.updateKeyResult(parsedId, keyResult, user);
+            KeyResult updatedKeyResult = keyResultService.updateKeyResult(parsedId, keyResult);
             log.info("Key result updated successfully: {}", updatedKeyResult.getId());
             return new SuccessResponse(updatedKeyResult);
         } catch (Exception e) {
@@ -75,7 +75,7 @@ public class KeyResultController {
         User user = (User) authentication.getPrincipal();
         log.info("Deleting key result {} by user {}", parsedId, user.getUsername());
         try {
-            keyResultService.deleteKeyResult(parsedId, user);
+            keyResultService.deleteKeyResult(parsedId);
             log.info("Key result deleted successfully: {}", parsedId);
             return new SuccessResponse();
         } catch (Exception e) {

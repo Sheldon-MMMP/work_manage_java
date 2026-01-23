@@ -34,7 +34,7 @@ public class UserController {
         try{
             VerificExceptionHandler.handleVerificationException(bindingResult);   
             User user = (User) authentication.getPrincipal();
-            log.info("Uploading avatar for user: {}", user.getUsername());
+            log.info("Uploading avatar for user: {}", user.getId());
             
             String url = ossService.uploadFile(avatarFile, "avatars/");
             
@@ -42,7 +42,7 @@ public class UserController {
             user.setAvatar(url);
             userService.updateUser(user);
             
-            log.info("Avatar uploaded successfully for user: {}", user.getUsername());
+            log.info("Avatar uploaded successfully for user: {}", user.getId());
             
             // 返回 {"code":200,"message":"success","data":{"avatar":url}}
             java.util.Map<String, String> data = new java.util.HashMap<>();
@@ -58,7 +58,7 @@ public class UserController {
     public SuccessResponse getUserProfile(Authentication authentication) {
         try{
             User user = (User) authentication.getPrincipal();
-            log.info("Getting profile for user: {}", user.getUsername());
+            log.info("Getting profile for user: {}", user.getId());
             
             User profile = userService.getUserById(user.getId());
             // 为头像URL添加签名
@@ -73,19 +73,19 @@ public class UserController {
             throw e;
         }
     }
-    
-    @PutMapping("/profile")
-    public SuccessResponse updateUserProfile(@Valid @RequestBody User updatedUser, BindingResult bindingResult, Authentication authentication) {
-        try{
-            VerificExceptionHandler.handleVerificationException(bindingResult);
-            User user = (User) authentication.getPrincipal();
-            log.info("Updating profile for user: {}", user.getUsername());
-            
+        
+        @PutMapping("/profile")
+        public SuccessResponse updateUserProfile(@Valid @RequestBody User updatedUser, BindingResult bindingResult, Authentication authentication) {
+            try{
+                VerificExceptionHandler.handleVerificationException(bindingResult);
+                User user = (User) authentication.getPrincipal();
+                log.info("Updating profile for user: {}", user.getId());
+                
             // 确保只能更新自己的信息
             updatedUser.setId(user.getId()); 
             User profile = userService.updateUser(updatedUser);
             
-            log.info("Profile updated successfully for user: {}", user.getUsername());
+            log.info("Profile updated successfully for user: {}", user.getId());
             // 为头像URL添加签名
             if(profile.getAvatar()==null){
                 profile.setAvatar("avatars/default.png");

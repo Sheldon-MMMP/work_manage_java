@@ -6,7 +6,6 @@ import com.example.okrmanagement.exception.BusinessException;
 import com.example.okrmanagement.repository.UserRepository;
 import com.example.okrmanagement.service.UserService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +16,6 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    @Autowired
     public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
@@ -73,9 +71,5 @@ public class UserServiceImpl implements UserService {
         return updatedUser;
     }
 
-    @Override
-    public User getUserByUuId(String uuId) {
-        return userRepository.findByUuId(uuId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
-    }
+
 }

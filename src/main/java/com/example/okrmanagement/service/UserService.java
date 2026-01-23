@@ -34,10 +34,5 @@ public interface UserService {
      */
     User updateUserAvatar(Long userId, String avatarUrl);
 
-    /**
-     * 根据uuId获取用户信息
-     * @param uuId 用户uuId
-     * @return 用户实体
-     */
-    User getUserByUuId(String uuId);
+
 }

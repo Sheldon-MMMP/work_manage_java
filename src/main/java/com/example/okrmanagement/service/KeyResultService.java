@@ -2,10 +2,10 @@ package com.example.okrmanagement.service;
 
 import com.example.okrmanagement.entity.KeyResult;
 import com.example.okrmanagement.entity.Objective;
-import com.example.okrmanagement.entity.User;
 import com.example.okrmanagement.repository.KeyResultRepository;
 import com.example.okrmanagement.repository.ObjectiveRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,39 +20,27 @@ public class KeyResultService {
     @Autowired
     private ObjectiveRepository objectiveRepository;
 
-    public KeyResult createKeyResult(Long objectiveId, KeyResult keyResult, User user) {
+    @PreAuthorize("@permissionEvaluator.hasObjectivePermission(#objectiveId)")
+    public KeyResult createKeyResult(Long objectiveId, KeyResult keyResult) {
         Objective objective = objectiveRepository.findById(objectiveId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.OBJECTIVE_NOT_FOUND));
-
-        Long userId = user.getId();
-        if (userId == null || !objective.getUser().getId().equals(userId)) {
-            throw new BusinessException(ErrorCode.NO_PERMISSION);
-        }
 
         keyResult.setObjective(objective);
         return keyResultRepository.save(keyResult);
     }
 
-    public List<KeyResult> getKeyResults(Long objectiveId, User user) {
-        Objective objective = objectiveRepository.findById(objectiveId)
+    @PreAuthorize("@permissionEvaluator.hasObjectivePermission(#objectiveId)")
+    public List<KeyResult> getKeyResults(Long objectiveId) {
+        objectiveRepository.findById(objectiveId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.OBJECTIVE_NOT_FOUND));
-
-        Long userId = user.getId();
-        if (userId == null || !objective.getUser().getId().equals(userId)) {
-            throw new BusinessException(ErrorCode.NO_PERMISSION);
-        }
 
         return keyResultRepository.findByObjectiveId(objectiveId);
     }
 
-    public KeyResult updateKeyResult(Long krId, KeyResult updatedKeyResult, User user) {
+    @PreAuthorize("@permissionEvaluator.hasKeyResultPermission(#krId)")
+    public KeyResult updateKeyResult(Long krId, KeyResult updatedKeyResult) {
         KeyResult keyResult = keyResultRepository.findById(krId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.KEY_RESULT_NOT_FOUND));
-
-        Long userId = user.getId();
-        if (userId == null || !keyResult.getObjective().getUser().getId().equals(userId)) {
-            throw new BusinessException(ErrorCode.NO_PERMISSION);
-        }
 
         keyResult.setTitle(updatedKeyResult.getTitle());
         keyResult.setDescription(updatedKeyResult.getDescription());
@@ -61,14 +49,10 @@ public class KeyResultService {
         return keyResultRepository.save(keyResult);
     }
 
-    public void deleteKeyResult(Long krId, User user) {
+    @PreAuthorize("@permissionEvaluator.hasKeyResultPermission(#krId)")
+    public void deleteKeyResult(Long krId) {
         KeyResult keyResult = keyResultRepository.findById(krId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.KEY_RESULT_NOT_FOUND));
-
-        Long userId = user.getId();
-        if (userId == null || !keyResult.getObjective().getUser().getId().equals(userId)) {
-            throw new BusinessException(ErrorCode.NO_PERMISSION);
-        }
 
         keyResultRepository.delete(keyResult);
     }

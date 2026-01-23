@@ -28,7 +28,7 @@ public class JwtUtils {
         User userPrincipal = (User) authentication.getPrincipal();
 
         return Jwts.builder()
-                .subject(userPrincipal.getUuId())
+                .subject(userPrincipal.getId().toString())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
                 .signWith(key())
@@ -39,13 +39,13 @@ public class JwtUtils {
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
     }
 
-    public String getUuIdFromJwtToken(String token) {   
-        return Jwts.parser()
+    public Long getUserIdFromJwtToken(String token) {   
+        return Long.parseLong(Jwts.parser()
                 .verifyWith(key())
                 .build()
                 .parseSignedClaims(token)
                 .getPayload()
-                .getSubject();
+                .getSubject());
     }
 
     public boolean validateJwtToken(String token) {

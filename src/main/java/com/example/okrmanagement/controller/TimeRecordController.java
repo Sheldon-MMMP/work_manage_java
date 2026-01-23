@@ -26,13 +26,13 @@ public class TimeRecordController {
         TypeValidator.validatePathParam("taskId", taskId, Long.class);
         Long parsedTaskId = Long.parseLong(taskId);
         User user = (User) authentication.getPrincipal();
-        log.info("Recording time for task {} by user {}", parsedTaskId, user.getUsername());
+        log.info("Recording time for task {} by user {}", parsedTaskId, user.getId());
         try {
-            TimeRecord newTimeRecord = timeRecordService.recordTime(parsedTaskId, timeRecord, user);
+            TimeRecord newTimeRecord = timeRecordService.recordTime(parsedTaskId, timeRecord);
             log.info("Time record created successfully: {}", newTimeRecord.getId());
             return new SuccessResponse(newTimeRecord);
         } catch (Exception e) {
-            log.error("Record time failed for task {} by user {}", parsedTaskId, user.getUsername(), e);
+            log.error("Record time failed for task {} by user {}", parsedTaskId, user.getId(), e);
             throw e;
         }
     }
@@ -40,13 +40,13 @@ public class TimeRecordController {
     @GetMapping("/recent")
     public SuccessResponse getRecentTimeRecords(Authentication authentication) {
         User user = (User) authentication.getPrincipal();
-        log.info("Getting recent time records for user: {}", user.getUsername());
+        log.info("Getting recent time records for user: {}", user.getId());
         try {
-            List<TimeRecord> timeRecords = timeRecordService.getRecentTimeRecords(user);
-            log.info("Got {} recent time records for user: {}", timeRecords.size(), user.getUsername());
+            List<TimeRecord> timeRecords = timeRecordService.getRecentTimeRecords();
+            log.info("Got {} recent time records for user: {}", timeRecords.size(), user.getId());
             return new SuccessResponse(timeRecords);
         } catch (Exception e) {
-            log.error("Get recent time records failed for user: {}", user.getUsername(), e);
+            log.error("Get recent time records failed for user: {}", user.getId(), e);
             throw e;
         }
     }
@@ -54,13 +54,13 @@ public class TimeRecordController {
     @GetMapping("/today")
     public SuccessResponse getTodayTimeRecords(Authentication authentication) {
         User user = (User) authentication.getPrincipal();
-        log.info("Getting today's time records for user: {}", user.getUsername());
+        log.info("Getting today's time records for user: {}", user.getId());
         try {
-            List<TimeRecord> timeRecords = timeRecordService.getTodayTimeRecords(user);
-            log.info("Got {} time records for today for user: {}", timeRecords.size(), user.getUsername());
+            List<TimeRecord> timeRecords = timeRecordService.getTodayTimeRecords();
+            log.info("Got {} time records for today for user: {}", timeRecords.size(), user.getId());
             return new SuccessResponse(timeRecords);
         } catch (Exception e) {
-            log.error("Get today's time records failed for user: {}", user.getUsername(), e);
+            log.error("Get today's time records failed for user: {}", user.getId(), e);
             throw e;
         }
     }
@@ -68,13 +68,13 @@ public class TimeRecordController {
     @GetMapping("/today/summary")
     public SuccessResponse getTodaySummary(Authentication authentication) {
         User user = (User) authentication.getPrincipal();
-        log.info("Getting today's summary for user: {}", user.getUsername());
+        log.info("Getting today's summary for user: {}", user.getId());
         try {
-            Map<String, Object> summary = timeRecordService.getTodaySummary(user);
-            log.info("Got today's summary for user: {}", user.getUsername());
+            Map<String, Object> summary = timeRecordService.getTodaySummary();
+            log.info("Got today's summary for user: {}", user.getId());
             return new SuccessResponse(summary);
         } catch (Exception e) {
-            log.error("Get today's summary failed for user: {}", user.getUsername(), e);
+            log.error("Get today's summary failed for user: {}", user.getId(), e);
             throw e;
         }
     }

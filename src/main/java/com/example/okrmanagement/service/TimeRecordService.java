@@ -6,6 +6,8 @@ import com.example.okrmanagement.entity.User;
 import com.example.okrmanagement.repository.TaskRepository;
 import com.example.okrmanagement.repository.TimeRecordRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -23,21 +25,19 @@ public class TimeRecordService {
     @Autowired
     private TaskRepository taskRepository;
 
-    public TimeRecord recordTime(Long taskId, TimeRecord timeRecord, User user) {
+    @PreAuthorize("@permissionEvaluator.hasTaskPermission(#taskId)")
+    public TimeRecord recordTime(Long taskId, TimeRecord timeRecord) {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.TASK_NOT_FOUND));
 
-        Long userId = user.getId();
-        if (userId == null || !task.getKeyResult().getObjective().getUser().getId().equals(userId)) {
-            throw new BusinessException(ErrorCode.NO_PERMISSION);
-        }
-
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         timeRecord.setTask(task);
         timeRecord.setUser(user);
         return timeRecordRepository.save(timeRecord);
     }
 
-    public List<TimeRecord> getRecentTimeRecords(User user) {
+    public List<TimeRecord> getRecentTimeRecords() {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Long userId = user.getId();
         if (userId == null) {
             throw new BusinessException(ErrorCode.INVALID_PARAMETER);
@@ -45,7 +45,8 @@ public class TimeRecordService {
         return timeRecordRepository.findByUserIdOrderByStartTimeDesc(userId);
     }
 
-    public List<TimeRecord> getTodayTimeRecords(User user) {
+    public List<TimeRecord> getTodayTimeRecords() {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Long userId = user.getId();
         if (userId == null) {
             throw new BusinessException(ErrorCode.INVALID_PARAMETER);
@@ -53,7 +54,8 @@ public class TimeRecordService {
         return timeRecordRepository.findTodayRecordsByUserId(userId);
     }
 
-    public Map<String, Object> getTodaySummary(User user) {
+    public Map<String, Object> getTodaySummary() {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Long userId = user.getId();
         if (userId == null) {
             throw new BusinessException(ErrorCode.INVALID_PARAMETER);

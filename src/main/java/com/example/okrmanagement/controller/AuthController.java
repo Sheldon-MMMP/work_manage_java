@@ -1,6 +1,5 @@
 package com.example.okrmanagement.controller;
 
-import com.example.okrmanagement.dto.JwtResponse;
 import com.example.okrmanagement.dto.LoginRequest;
 import com.example.okrmanagement.dto.RegisterRequest;
 import com.example.okrmanagement.dto.SuccessResponse;
