@@ -92,7 +92,7 @@ public class ObjectiveController {
             log.error("Delete objective failed for id {} by user: {}", parsedId, user.getUsername(), e);
             throw e;
         }
-    
+    }
 
     @PutMapping("/objectives/{id}/archive")
     public SuccessResponse archiveObjective(@PathVariable String id, Authentication authentication) {
