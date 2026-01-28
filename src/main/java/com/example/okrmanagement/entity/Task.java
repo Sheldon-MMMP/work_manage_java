@@ -28,6 +28,9 @@ public class Task {
     @Column(nullable = false)
     private String status; // todo, in_progress, done
 
+    @Column(name = "is_completed", nullable = false)
+    private boolean isCompleted; // 是否完成
+
     @Column(name = "start_time")
     private LocalDateTime startTime;
 
@@ -49,6 +52,7 @@ public class Task {
         if (status == null) {
             status = "todo";
         }
+        isCompleted = false;
     }
 
     @PreUpdate
