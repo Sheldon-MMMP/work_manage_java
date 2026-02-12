@@ -8,11 +8,10 @@ import lombok.Getter;
 public enum ErrorCode {
     // 业务逻辑错误 - 用户操作
     USER_NOT_FOUND(11001, "用户不存在"),
+    INCORRECT_PASSWORD(11002, "密码错误"),
     EMAIL_EXISTS(11003, "邮箱已被使用"),
     BAD_CREDENTIALS(11004, "用户名或密码错误"),
     NO_PERMISSION(11005, "没有操作权限"),
-    OBJECTIVE_NOT_FOUND(11006, "目标不存在"),
-    KEY_RESULT_NOT_FOUND(11007, "关键结果不存在"),
     TASK_NOT_FOUND(11008, "任务不存在"),
     ANNIVERSARY_NOT_FOUND(11009, "纪念日不存在"),
     TIME_RECORD_NOT_FOUND(11010, "时间记录不存在"),
@@ -40,7 +39,24 @@ public enum ErrorCode {
     NETWORK_ERROR(32202, "网络连接错误"),
     
     // 第三方服务错误
-    THIRD_PARTY_ERROR(13001, "第三方服务错误");
+    THIRD_PARTY_ERROR(13001, "第三方服务错误"),
+    
+    // 文件夹相关错误
+    FOLDER_NOT_FOUND(11014, "文件夹不存在"),
+    FOLDER_NAME_EXISTS(11015, "文件夹名称已存在"),
+    FOLDER_HAS_CHILDREN(11016, "文件夹包含子文件夹或清单，无法删除"),
+    
+    // 任务清单相关错误
+    TASK_LIST_NOT_FOUND(11017, "任务清单不存在"),
+    TASK_LIST_NAME_EXISTS(11018, "任务清单名称已存在"),
+    
+    // 任务层级相关错误
+    TASK_LEVEL_EXCEEDED(11019, "任务层级超过限制（最多3级）"),
+    TASK_HAS_CHILDREN(11020, "任务包含子任务，无法删除"),
+    TASK_CIRCULAR_DEPENDENCY(11021, "任务循环依赖"),
+    
+    // 文件夹循环依赖错误
+    FOLDER_CIRCULAR_DEPENDENCY(11022, "文件夹循环依赖");
     
     private final int code;
     private final String message;

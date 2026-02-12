@@ -5,14 +5,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Data
 @NoArgsConstructor
-@TableName("tasks")
-public class Task {
+@TableName("folders")
+public class Folder {
     @TableId(type = IdType.AUTO)
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Long id;
@@ -21,29 +20,11 @@ public class Task {
     @JsonIgnore
     private Long userId;
 
-    @TableField(value = "task_list_id", insertStrategy = FieldStrategy.NOT_EMPTY, updateStrategy = FieldStrategy.NOT_EMPTY)
-    private Long taskListId;
-
     @TableField(value = "parent_id", insertStrategy = FieldStrategy.NEVER, updateStrategy = FieldStrategy.NEVER)
-    private Long parentId;
+    private Long parentId; // 父文件夹ID，null表示根文件夹
 
     @TableField(insertStrategy = FieldStrategy.NOT_EMPTY, updateStrategy = FieldStrategy.NOT_EMPTY)
-    private String title;
-
-    @TableField(insertStrategy = FieldStrategy.NEVER, updateStrategy = FieldStrategy.NEVER)
-    private String description;
-
-    @TableField(insertStrategy = FieldStrategy.NOT_EMPTY, updateStrategy = FieldStrategy.NOT_EMPTY)
-    private String status;
-
-    @TableField(value = "is_completed", insertStrategy = FieldStrategy.NOT_EMPTY, updateStrategy = FieldStrategy.NOT_EMPTY)
-    private boolean isCompleted;
-
-    @TableField(value = "start_time", insertStrategy = FieldStrategy.NEVER, updateStrategy = FieldStrategy.NEVER)
-    private LocalDateTime startTime;
-
-    @TableField(value = "end_time", insertStrategy = FieldStrategy.NEVER, updateStrategy = FieldStrategy.NEVER)
-    private LocalDateTime endTime;
+    private String name; // 文件夹名称
 
     @TableField(value = "created_at", fill = FieldFill.INSERT)
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
@@ -52,8 +33,4 @@ public class Task {
     @TableField(value = "updated_at", fill = FieldFill.UPDATE)
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private LocalDateTime updatedAt;
-
-    @TableField(exist = false)
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private List<Task> subTasks;
 }

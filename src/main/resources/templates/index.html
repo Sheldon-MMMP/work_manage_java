@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>任务管理系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* 侧边栏 */
+        .sidebar {
+            width: 250px;
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .sidebar h2 {
+            margin-bottom: 20px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .folder-section, .list-section {
+            margin-bottom: 20px;
+        }
+
+        .folder-section h3, .list-section h3 {
+            margin-bottom: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            text-transform: uppercase;
+            color: #bdc3c7;
+        }
+
+        .folder-item, .list-item {
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .folder-item:hover, .list-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .folder-item.active, .list-item.active {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .folder-item .folder-icon {
+            margin-right: 8px;
+        }
+
+        .list-item .list-icon {
+            margin-right: 8px;
+        }
+
+        .add-button {
+            width: 100%;
+            padding: 8px;
+            background-color: transparent;
+            border: 1px dashed rgba(255, 255, 255, 0.5);
+            color: rgba(255, 255, 255, 0.7);
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.2s;
+        }
+
+        .add-button:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        /* 主内容区 */
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+
+        .btn-secondary {
+            background-color: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #7f8c8d;
+        }
+
+        /* 任务列表 */
+        .task-list {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        .task-list h2 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid #ecf0f1;
+            transition: background-color 0.2s;
+        }
+
+        .task-item:hover {
+            background-color: #f9f9f9;
+        }
+
+        .task-item.completed .task-title {
+            text-decoration: line-through;
+            color: #95a5a6;
+        }
+
+        .task-checkbox {
+            margin-right: 12px;
+        }
+
+        .task-content {
+            flex: 1;
+        }
+
+        .task-title {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .task-description {
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .task-actions button {
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            color: #7f8c8d;
+            padding: 4px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .task-actions button:hover {
+            background-color: #ecf0f1;
+        }
+
+        /* 模态框 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 400px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .close-button {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #95a5a6;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        /* 任务层级缩进 */
+        .task-item.level-1 {
+            padding-left: 20px;
+        }
+
+        .task-item.level-2 {
+            padding-left: 40px;
+        }
+
+        .task-item.level-3 {
+            padding-left: 60px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 侧边栏 -->
+        <div class="sidebar">
+            <h2>任务管理</h2>
+            
+            <!-- 文件夹部分 -->
+            <div class="folder-section">
+                <h3>文件夹</h3>
+                <div id="folder-list">
+                    <!-- 文件夹项将通过JS动态添加 -->
+                </div>
+                <button class="add-button" onclick="openAddFolderModal()">+ 添加文件夹</button>
+            </div>
+            
+            <!-- 清单部分 -->
+            <div class="list-section">
+                <h3>清单</h3>
+                <div id="list-list">
+                    <!-- 清单项将通过JS动态添加 -->
+                </div>
+                <button class="add-button" onclick="openAddListModal()">+ 添加清单</button>
+            </div>
+        </div>
+        
+        <!-- 主内容区 -->
+        <div class="main-content">
+            <div class="header">
+                <h1 id="current-list-name">所有任务</h1>
+                <div class="header-actions">
+                    <button class="btn btn-secondary" onclick="refreshTasks()">刷新</button>
+                    <button class="btn btn-primary" onclick="openAddTaskModal()">+ 新建任务</button>
+                </div>
+            </div>
+            
+            <!-- 任务列表 -->
+            <div class="task-list">
+                <h2>任务</h2>
+                <div id="task-list">
+                    <!-- 任务项将通过JS动态添加 -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 添加文件夹模态框 -->
+    <div id="add-folder-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>添加文件夹</h3>
+                <button class="close-button" onclick="closeModal('add-folder-modal')">&times;</button>
+            </div>
+            <form id="add-folder-form">
+                <div class="form-group">
+                    <label for="folder-name">文件夹名称</label>
+                    <input type="text" id="folder-name" name="folder-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="parent-folder">父文件夹</label>
+                    <select id="parent-folder" name="parent-folder">
+                        <option value="">无（根目录）</option>
+                        <!-- 父文件夹选项将通过JS动态添加 -->
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('add-folder-modal')">取消</button>
+                    <button type="submit" class="btn btn-primary">确定</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- 添加清单模态框 -->
+    <div id="add-list-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>添加清单</h3>
+                <button class="close-button" onclick="closeModal('add-list-modal')">&times;</button>
+            </div>
+            <form id="add-list-form">
+                <div class="form-group">
+                    <label for="list-name">清单名称</label>
+                    <input type="text" id="list-name" name="list-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="list-description">描述（可选）</label>
+                    <textarea id="list-description" name="list-description" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="list-folder">文件夹</label>
+                    <select id="list-folder" name="list-folder">
+                        <option value="">无（根目录）</option>
+                        <!-- 文件夹选项将通过JS动态添加 -->
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('add-list-modal')">取消</button>
+                    <button type="submit" class="btn btn-primary">确定</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- 添加任务模态框 -->
+    <div id="add-task-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>添加任务</h3>
+                <button class="close-button" onclick="closeModal('add-task-modal')">&times;</button>
+            </div>
+            <form id="add-task-form">
+                <div class="form-group">
+                    <label for="task-title">任务标题</label>
+                    <input type="text" id="task-title" name="task-title" required>
+                </div>
+                <div class="form-group">
+                    <label for="task-description">描述（可选）</label>
+                    <textarea id="task-description" name="task-description" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="task-list-select">所属清单</label>
+                    <select id="task-list-select" name="task-list-select" required>
+                        <!-- 清单选项将通过JS动态添加 -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="task-parent">父任务（可选）</label>
+                    <select id="task-parent" name="task-parent">
+                        <option value="">无（顶级任务）</option>
+                        <!-- 父任务选项将通过JS动态添加 -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="task-status">状态</label>
+                    <select id="task-status" name="task-status">
+                        <option value="todo">待办</option>
+                        <option value="in_progress">进行中</option>
+                        <option value="done">已完成</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('add-task-modal')">取消</button>
+                    <button type="submit" class="btn btn-primary">确定</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- 编辑任务模态框 -->
+    <div id="edit-task-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>编辑任务</h3>
+                <button class="close-button" onclick="closeModal('edit-task-modal')">&times;</button>
+            </div>
+            <form id="edit-task-form">
+                <input type="hidden" id="edit-task-id">
+                <div class="form-group">
+                    <label for="edit-task-title">任务标题</label>
+                    <input type="text" id="edit-task-title" name="edit-task-title" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-task-description">描述（可选）</label>
+                    <textarea id="edit-task-description" name="edit-task-description" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="edit-task-status">状态</label>
+                    <select id="edit-task-status" name="edit-task-status">
+                        <option value="todo">待办</option>
+                        <option value="in_progress">进行中</option>
+                        <option value="done">已完成</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('edit-task-modal')">取消</button>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let currentFolderId = null;
+        let currentListId = null;
+        let folders = [];
+        let taskLists = [];
+        let tasks = [];
+        
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadFolders();
+            loadTaskLists();
+            loadTasks();
+        });
+        
+        // 加载文件夹
+        function loadFolders() {
+            fetch('/api/v1/folders', {
+                headers: {
+                    'Authorization': 'Bearer ' + getToken()
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.code === 0) {
+                    folders = data.data;
+                    renderFolders();
+                    updateFolderSelects();
+                } else {
+                    console.error('加载文件夹失败:', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('加载文件夹错误:', error);
+            });
+        }
+        
+        // 加载任务清单
+        function loadTaskLists() {
+            fetch('/api/v1/task-lists', {
+                headers: {
+                    'Authorization': 'Bearer ' + getToken()
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.code === 0) {
+                    taskLists = data.data;
+                    renderTaskLists();
+                    updateListSelects();
+                } else {
+                    console.error('加载清单失败:', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('加载清单错误:', error);
+            });
+        }
+        
+        // 加载任务
+        function loadTasks() {
+            let url = '/api/v1/tasks';
+            if (currentListId) {
+                url = `/api/v1/tasks/task-list/${currentListId}`;
+            }
+            
+            fetch(url, {
+                headers: {
+                    'Authorization': 'Bearer ' + getToken()
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.code === 0) {
+                    tasks = data.data;
+                    renderTasks();
+                } else {
+                    console.error('加载任务失败:', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('加载任务错误:', error);
+            });
+        }
+        
+        // 渲染文件夹
+        function renderFolders() {
+            const folderList = document.getElementById('folder-list');
+            folderList.innerHTML = '';
+            
+            folders.forEach(folder => {
+                const folderItem = document.createElement('div');
+                folderItem.className = `folder-item ${folder.id === currentFolderId ? 'active' : ''}`;
+                folderItem.onclick = () => selectFolder(folder.id);
+                folderItem.innerHTML = `<span class="folder-icon">📁</span>${folder.name}`;
+                folderList.appendChild(folderItem);
+            });
+        }
+        
+        // 渲染任务清单
+        function renderTaskLists() {
+            const listList = document.getElementById('list-list');
+            listList.innerHTML = '';
+            
+            taskLists.forEach(list => {
+                const listItem = document.createElement('div');
+                listItem.className = `list-item ${list.id === currentListId ? 'active' : ''}`;
+                listItem.onclick = () => selectList(list.id);
+                listItem.innerHTML = `<span class="list-icon">📋</span>${list.name}`;
+                listList.appendChild(listItem);
+            });
+        }
+        
+        // 渲染任务
+        function renderTasks() {
+            const taskList = document.getElementById('task-list');
+            taskList.innerHTML = '';
+            
+            if (tasks.length === 0) {
+                taskList.innerHTML = '<p style="text-align: center; color: #95a5a6; padding: 20px;">暂无任务</p>';
+                return;
+            }
+            
+            // 递归渲染任务树
+            function renderTaskTree(taskId, level = 0) {
+                const task = tasks.find(t => t.id === taskId);
+                if (!task) return;
+                
+                const taskItem = document.createElement('div');
+                taskItem.className = `task-item ${task.isCompleted ? 'completed' : ''} level-${level}`;
+                
+                taskItem.innerHTML = `
+                    <input type="checkbox" class="task-checkbox" ${task.isCompleted ? 'checked' : ''} onclick="toggleTaskCompletion(${task.id}, ${!task.isCompleted})">
+                    <div class="task-content">
+                        <div class="task-title">${task.title}</div>
+                        ${task.description ? `<div class="task-description">${task.description}</div>` : ''}
+                    </div>
+                    <div class="task-actions">
+                        <button onclick="editTask(${task.id})">✏️</button>
+                        <button onclick="deleteTask(${task.id})">🗑️</button>
+                    </div>
+                `;
+                
+                taskList.appendChild(taskItem);
+                
+                // 渲染子任务
+                if (task.subTasks && task.subTasks.length > 0) {
+                    task.subTasks.forEach(subTask => {
+                        renderTaskTree(subTask.id, level + 1);
+                    });
+                }
+            }
+            
+            // 渲染顶级任务
+            tasks.filter(task => !task.parentId).forEach(task => {
+                renderTaskTree(task.id);
+            });
+        }
+        
+        // 选择文件夹
+        function selectFolder(folderId) {
+            currentFolderId = folderId;
+            currentListId = null;
+            renderFolders();
+            renderTaskLists();
+            document.getElementById('current-list-name').textContent = '所有任务';
+            loadTasks();
+        }
+        
+        // 选择清单
+        function selectList(listId) {
+            currentListId = listId;
+            const list = taskLists.find(l => l.id === listId);
+            if (list) {
+                document.getElementById('current-list-name').textContent = list.name;
+            }
+            renderTaskLists();
+            loadTasks();
+        }
+        
+        // 打开添加文件夹模态框
+        function openAddFolderModal() {
+            document.getElementById('add-folder-modal').style.display = 'block';
+        }
+        
+        // 打开添加清单模态框
+        function openAddListModal() {
+            document.getElementById('add-list-modal').style.display = 'block';
+        }
+        
+        // 打开添加任务模态框
+        function openAddTaskModal() {
+            document.getElementById('add-task-modal').style.display = 'block';
+        }
+        
+        // 关闭模态框
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        // 更新文件夹选择框
+        function updateFolderSelects() {
+            const selects = ['parent-folder', 'list-folder'];
+            selects.forEach(selectId => {
+                const select = document.getElementById(selectId);
+                if (select) {
+                    // 保留第一个选项（无）
+                    const firstOption = select.options[0];
+                    select.innerHTML = '';
+                    select.appendChild(firstOption);
+                    
+                    // 添加文件夹选项
+                    folders.forEach(folder => {
+                        const option = document.createElement('option');
+                        option.value = folder.id;
+                        option.textContent = folder.name;
+                        select.appendChild(option);
+                    });
+                }
+            });
+        }
+        
+        // 更新清单选择框
+        function updateListSelects() {
+            const select = document.getElementById('task-list-select');
+            if (select) {
+                select.innerHTML = '';
+                taskLists.forEach(list => {
+                    const option = document.createElement('option');
+                    option.value = list.id;
+                    option.textContent = list.name;
+                    if (list.id === currentListId) {
+                        option.selected = true;
+                    }
+                    select.appendChild(option);
+                });
+            }
+        }
+        
+        // 提交添加文件夹表单
+        document.getElementById('add-folder-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const folderName = document.getElementById('folder-name').value;
+            const parentId = document.getElementById('parent-folder').value;
+            
+            fetch('/api/v1/folders', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + getToken()
+                },
+                body: JSON.stringify({
+                    name: folderName,
+                    parentId: parentId ? parseInt(parentId) : null
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.code === 0) {
+                    closeModal('add-folder-modal');
+                    loadFolders();
+                    document.getElementById('add-folder-form').reset();
+                } else {
+                    alert('添加文件夹失败: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('添加文件夹错误:', error);
+                alert('添加文件夹时发生错误');
+            });
+        });
+        
+        // 提交添加清单表单
+        document.getElementById('add-list-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const listName = document.getElementById('list-name').value;
+            const listDescription = document.getElementById('list-description').value;
+            const folderId = document.getElementById('list-folder').value;
+            
+            fetch('/api/v1/task-lists', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + getToken()
+                },
+                body: JSON.stringify({
+                    name: listName,
+                    description: listDescription,
+                    folderId: folderId ? parseInt(folderId) : null
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.code === 0) {
+                    closeModal('add-list-modal');
+                    loadTaskLists();
+                    document.getElementById('add-list-form').reset();
+                } else {
+                    alert('添加清单失败: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('添加清单错误:', error);
+                alert('添加清单时发生错误');
+            });
+        });
+        
+        // 提交添加任务表单
+        document.getElementById('add-task-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const title = document.getElementById('task-title').value;
+            const description = document.getElementById('task-description').value;
+            const listId = document.getElementById('task-list-select').value;
+            const parentId = document.getElementById('task-parent').value;
+            const status = document.getElementById('task-status').value;
+            
+            fetch('/api/v1/tasks', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + getToken()
+                },
+                body: JSON.stringify({
+                    title: title,
+                    description: description,
+                    taskListId: parseInt(listId),
+                    parentId: parentId ? parseInt(parentId) : null,
+                    status: status,
+                    isCompleted: status === 'done'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.code === 0) {
+                    closeModal('add-task-modal');
+                    loadTasks();
+                    document.getElementById('add-task-form').reset();
+                } else {
+                    alert('添加任务失败: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('添加任务错误:', error);
+                alert('添加任务时发生错误');
+            });
+        });
+        
+        // 编辑任务
+        function editTask(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) return;
+            
+            document.getElementById('edit-task-id').value = task.id;
+            document.getElementById('edit-task-title').value = task.title;
+            document.getElementById('edit-task-description').value = task.description || '';
+            document.getElementById('edit-task-status').value = task.status;
+            
+            document.getElementById('edit-task-modal').style.display = 'block';
+        }
+        
+        // 提交编辑任务表单
+        document.getElementById('edit-task-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const taskId = document.getElementById('edit-task-id').value;
+            const title = document.getElementById('edit-task-title').value;
+            const description = document.getElementById('edit-task-description').value;
+            const status = document.getElementById('edit-task-status').value;
+            
+            fetch(`/api/v1/tasks/${taskId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + getToken()
+                },
+                body: JSON.stringify({
+                    title: title,
+                    description: description,
+                    status: status,
+                    isCompleted: status === 'done'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.code === 0) {
+                    closeModal('edit-task-modal');
+                    loadTasks();
+                } else {
+                    alert('编辑任务失败: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('编辑任务错误:', error);
+                alert('编辑任务时发生错误');
+            });
+        });
+        
+        // 删除任务
+        function deleteTask(taskId) {
+            if (!confirm('确定要删除这个任务吗？')) return;
+            
+            fetch(`/api/v1/tasks/${taskId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': 'Bearer ' + getToken()
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.code === 0) {
+                    loadTasks();
+                } else {
+                    alert('删除任务失败: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('删除任务错误:', error);
+                alert('删除任务时发生错误');
+            });
+        }
+        
+        // 切换任务完成状态
+        function toggleTaskCompletion(taskId, isCompleted) {
+            fetch(`/api/v1/tasks/${taskId}/completion`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + getToken()
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.code === 0) {
+                    loadTasks();
+                } else {
+                    console.error('更新任务状态失败:', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('更新任务状态错误:', error);
+            });
+        }
+        
+        // 刷新任务
+        function refreshTasks() {
+            loadTasks();
+        }
+        
+        // 获取token（这里需要根据实际登录机制修改）
+        function getToken() {
+            // 临时返回一个假token，实际应该从localStorage或cookie中获取
+            return 'your-token-here';
+        }
+        
+        // 点击模态框外部关闭
+        window.onclick = function(event) {
+            const modals = ['add-folder-modal', 'add-list-modal', 'add-task-modal', 'edit-task-modal'];
+            modals.forEach(modalId => {
+                const modal = document.getElementById(modalId);
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

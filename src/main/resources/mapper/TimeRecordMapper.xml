@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.okrmanagement.mapper.TimeRecordMapper">
+
+    <select id="findByUserIdAndStartTimeBetween" resultType="com.example.okrmanagement.entity.TimeRecord">
+        SELECT * FROM time_records
+        WHERE user_id = #{userId}
+          AND start_time &gt;= #{start}
+          AND start_time &lt;= #{end}
+        ORDER BY start_time DESC
+    </select>
+
+    <select id="findByUserIdOrderByStartTimeDesc" resultType="com.example.okrmanagement.entity.TimeRecord">
+        SELECT * FROM time_records
+        WHERE user_id = #{userId}
+        ORDER BY start_time DESC
+    </select>
+
+    <select id="findTodayRecordsByUserId" resultType="com.example.okrmanagement.entity.TimeRecord">
+        SELECT * FROM time_records
+        WHERE user_id = #{userId}
+          AND (start_time::date) = CURRENT_DATE
+        ORDER BY start_time DESC
+    </select>
+
+</mapper>

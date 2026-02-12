@@ -25,8 +25,13 @@ public class OssService {
     private String bucketName;
 
     public String uploadFile(MultipartFile file,String folder) {
+        // 验证文件是否为null
+        if (file == null) {
+            throw new BusinessException(ErrorCode.INVALID_PARAMETER);
+        }
         // 验证文件类型
-        if (!file.getContentType().startsWith("image/")) {
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
             throw new BusinessException(ErrorCode.INVALID_AVATAR_TYPE);
         }
         // 生成唯一文件名

@@ -7,6 +7,12 @@ public class VerificExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(VerificExceptionHandler.class);
 
     public static void handleVerificationException(BindingResult bindingResult) {
+        // 判断bindingResult是否为null
+        if (bindingResult == null) {
+            log.error("BindingResult is null");
+            throw new RuntimeException("参数错误");
+        }
+        
         // 判断是否有错误
         if (bindingResult.hasErrors()) {
             String errorMessage = bindingResult.getFieldError() != null

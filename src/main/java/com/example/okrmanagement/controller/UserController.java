@@ -1,5 +1,6 @@
 package com.example.okrmanagement.controller;
 
+import cn.dev33.satoken.stp.StpUtil;
 import com.example.okrmanagement.dto.SuccessResponse;
 import com.example.okrmanagement.entity.User;
 import com.example.okrmanagement.service.OssService;
@@ -9,7 +10,6 @@ import com.example.okrmanagement.common.VerificExceptionHandler;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -30,10 +30,11 @@ public class UserController {
     private UserService userService;
     
     @PostMapping("/avatar")
-    public SuccessResponse uploadAvatar(@Valid @RequestParam("avatarFile") MultipartFile avatarFile, Authentication authentication, BindingResult bindingResult) {
+    public SuccessResponse uploadAvatar(@Valid @RequestParam("avatarFile") MultipartFile avatarFile, BindingResult bindingResult) {
         try{
             VerificExceptionHandler.handleVerificationException(bindingResult);   
-            User user = (User) authentication.getPrincipal();
+            Long userId = StpUtil.getLoginIdAsLong();
+            User user = userService.getUserById(userId);
             log.info("Uploading avatar for user: {}", user.getId());
             
             String url = ossService.uploadFile(avatarFile, "avatars/");
@@ -55,12 +56,12 @@ public class UserController {
     }
     
     @GetMapping("/profile")
-    public SuccessResponse getUserProfile(Authentication authentication) {
+    public SuccessResponse getUserProfile() {
         try{
-            User user = (User) authentication.getPrincipal();
-            log.info("Getting profile for user: {}", user.getId());
+            Long userId = StpUtil.getLoginIdAsLong();
+            log.info("Getting profile for user: {}", userId);
             
-            User profile = userService.getUserById(user.getId());
+            User profile = userService.getUserById(userId);
             // 为头像URL添加签名
             if(profile.getAvatar()==null){
                 profile.setAvatar("avatars/default.png");
@@ -75,17 +76,17 @@ public class UserController {
     }
         
         @PutMapping("/profile")
-        public SuccessResponse updateUserProfile(@Valid @RequestBody User updatedUser, BindingResult bindingResult, Authentication authentication) {
+        public SuccessResponse updateUserProfile(@Valid @RequestBody User updatedUser, BindingResult bindingResult) {
             try{
                 VerificExceptionHandler.handleVerificationException(bindingResult);
-                User user = (User) authentication.getPrincipal();
-                log.info("Updating profile for user: {}", user.getId());
+                Long userId = StpUtil.getLoginIdAsLong();
+                log.info("Updating profile for user: {}", userId);
                 
             // 确保只能更新自己的信息
-            updatedUser.setId(user.getId()); 
+            updatedUser.setId(userId); 
             User profile = userService.updateUser(updatedUser);
             
-            log.info("Profile updated successfully for user: {}", user.getId());
+            log.info("Profile updated successfully for user: {}", userId);
             // 为头像URL添加签名
             if(profile.getAvatar()==null){
                 profile.setAvatar("avatars/default.png");

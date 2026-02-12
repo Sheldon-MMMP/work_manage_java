@@ -1,85 +1,89 @@
 package com.example.okrmanagement.service;
 
+import cn.dev33.satoken.stp.StpUtil;
+import com.example.okrmanagement.common.ErrorCode;
 import com.example.okrmanagement.entity.Task;
 import com.example.okrmanagement.entity.TimeRecord;
-import com.example.okrmanagement.entity.User;
-import com.example.okrmanagement.repository.TaskRepository;
-import com.example.okrmanagement.repository.TimeRecordRepository;
+import com.example.okrmanagement.exception.BusinessException;
+import com.example.okrmanagement.mapper.TaskMapper;
+import com.example.okrmanagement.mapper.TimeRecordMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import com.example.okrmanagement.exception.BusinessException;
-import com.example.okrmanagement.common.ErrorCode;
 
 @Service
 public class TimeRecordService {
     @Autowired
-    private TimeRecordRepository timeRecordRepository;
+    private TimeRecordMapper timeRecordMapper;
 
     @Autowired
-    private TaskRepository taskRepository;
-
-    @PreAuthorize("@permissionEvaluator.hasTaskPermission(#taskId)")
+    private TaskMapper taskMapper;
+    /**
+     * 记录时间，需具备该任务的权限（任务属于当前用户）
+     */
     public TimeRecord recordTime(Long taskId, TimeRecord timeRecord) {
-        Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.TASK_NOT_FOUND));
-
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        timeRecord.setTask(task);
-        timeRecord.setUser(user);
-        return timeRecordRepository.save(timeRecord);
+        Task task = taskMapper.selectById(taskId);
+        if (task == null) {
+            throw new BusinessException(ErrorCode.TASK_NOT_FOUND);
+        }
+        long userId = StpUtil.getLoginIdAsLong();
+        if (!task.getUserId().equals(userId)) {
+            throw new BusinessException(ErrorCode.NO_PERMISSION);
+        }
+        timeRecord.setTaskId(taskId);
+        timeRecord.setUserId(userId);
+        timeRecordMapper.insert(timeRecord);
+        return timeRecord;
     }
 
     public List<TimeRecord> getRecentTimeRecords() {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Long userId = user.getId();
-        if (userId == null) {
-            throw new BusinessException(ErrorCode.INVALID_PARAMETER);
-        }
-        return timeRecordRepository.findByUserIdOrderByStartTimeDesc(userId);
+        long userId = StpUtil.getLoginIdAsLong();
+        return timeRecordMapper.findByUserIdOrderByStartTimeDesc(userId);
     }
 
     public List<TimeRecord> getTodayTimeRecords() {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Long userId = user.getId();
-        if (userId == null) {
-            throw new BusinessException(ErrorCode.INVALID_PARAMETER);
-        }
-        return timeRecordRepository.findTodayRecordsByUserId(userId);
+        long userId = StpUtil.getLoginIdAsLong();
+        return timeRecordMapper.findTodayRecordsByUserId(userId);
     }
 
     public Map<String, Object> getTodaySummary() {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Long userId = user.getId();
-        if (userId == null) {
-            throw new BusinessException(ErrorCode.INVALID_PARAMETER);
-        }
-        List<TimeRecord> todayRecords = timeRecordRepository.findTodayRecordsByUserId(userId);
+        long userId = StpUtil.getLoginIdAsLong();
+        List<TimeRecord> todayRecords = timeRecordMapper.findTodayRecordsByUserId(userId);
 
-        // 计算总时长
+        if (todayRecords.isEmpty()) {
+            return Map.of(
+                    "totalHours", 0L,
+                    "totalMinutes", 0L,
+                    "totalMinutesAll", 0L,
+                    "taskDurations", Map.<String, Map<String, Long>>of());
+        }
+
+        List<Long> taskIds = todayRecords.stream()
+                .map(TimeRecord::getTaskId)
+                .distinct()
+                .toList();
+        List<Task> tasks = taskMapper.selectBatchIds(taskIds);
+        Map<Long, String> taskIdToTitle = tasks.stream()
+                .collect(Collectors.toMap(Task::getId, Task::getTitle));
+
         Duration totalDuration = todayRecords.stream()
                 .map(record -> Duration.between(record.getStartTime(), record.getEndTime()))
                 .reduce(Duration.ZERO, Duration::plus);
 
-        // 按任务分组计算时长
         Map<String, Duration> taskDurations = todayRecords.stream()
                 .collect(Collectors.groupingBy(
-                        record -> record.getTask().getTitle(),
+                        record -> taskIdToTitle.getOrDefault(record.getTaskId(), "未知"),
                         Collectors.mapping(record -> Duration.between(record.getStartTime(), record.getEndTime()),
                                 Collectors.reducing(Duration.ZERO, Duration::plus))));
 
-        // 转换为小时和分钟
         long totalMinutes = totalDuration.toMinutes();
         long totalHours = totalMinutes / 60;
         long remainingMinutes = totalMinutes % 60;
 
-        // 构建结果
         return Map.of(
                 "totalHours", totalHours,
                 "totalMinutes", remainingMinutes,
@@ -87,7 +91,7 @@ public class TimeRecordService {
                 "taskDurations", taskDurations.entrySet().stream()
                         .collect(Collectors.toMap(
                                 Map.Entry::getKey,
-                                entry -> Map.of(
+                                entry -> Map.<String, Long>of(
                                         "hours", entry.getValue().toHours(),
                                         "minutes", entry.getValue().toMinutes() % 60))));
     }

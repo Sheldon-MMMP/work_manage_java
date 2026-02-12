@@ -1,86 +1,136 @@
 package com.example.okrmanagement.controller;
 
-import com.example.okrmanagement.common.TypeValidator;
+import cn.dev33.satoken.stp.StpUtil;
 import com.example.okrmanagement.dto.SuccessResponse;
 import com.example.okrmanagement.entity.Task;
-import com.example.okrmanagement.entity.User;
 import com.example.okrmanagement.service.TaskService;
-import lombok.extern.slf4j.Slf4j;
+import com.example.okrmanagement.common.VerificExceptionHandler;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
 @Slf4j
 @CrossOrigin(origins = "*")
 @RestController
-@RequestMapping("/api/v1/key-results")
+@RequestMapping("/api/v1/tasks")
 public class TaskController {
+
     @Autowired
     private TaskService taskService;
 
-    @PostMapping("/{krId}/tasks")
-    public SuccessResponse createTask(@PathVariable String krId, @RequestBody Task task, Authentication authentication) {
-        TypeValidator.validatePathParam("krId", krId, Long.class);
-        Long parsedKrId = Long.parseLong(krId);
-        User user = (User) authentication.getPrincipal();
-        log.info("Creating task for KR {} by user {}", parsedKrId, user.getUsername());
+    /**
+     * 创建任务
+     */
+    @PostMapping
+    public SuccessResponse createTask(@Valid @RequestBody Task task, BindingResult bindingResult) {
         try {
-            Task newTask = taskService.createTask(parsedKrId, task);
-            log.info("Task created successfully: {}", newTask.getId());
-            return new SuccessResponse(newTask);
+            VerificExceptionHandler.handleVerificationException(bindingResult);
+            Long userId = StpUtil.getLoginIdAsLong();
+            task.setUserId(userId);
+            log.info("Creating task for user: {}", userId);
+
+            Task createdTask = taskService.createTask(task);
+            log.info("Task created successfully: {}", createdTask.getId());
+
+            return new SuccessResponse(createdTask);
         } catch (Exception e) {
-            log.error("Create task failed for KR {} by user {}", parsedKrId, user.getUsername(), e);
+            log.error("Failed to create task: {}", e.getMessage());
             throw e;
         }
     }
 
-    @GetMapping("/{krId}/tasks")
-    public SuccessResponse getTasks(@PathVariable String krId, Authentication authentication) {
-        TypeValidator.validatePathParam("krId", krId, Long.class);
-        Long parsedKrId = Long.parseLong(krId);
-        User user = (User) authentication.getPrincipal();
-        log.info("Getting tasks for KR {} by user {}", parsedKrId, user.getUsername());
+    /**
+     * 更新任务
+     */
+    @PutMapping("/{taskId}")
+    public SuccessResponse updateTask(@Valid @RequestBody Task task, @PathVariable Long taskId, BindingResult bindingResult) {
         try {
-            List<Task> tasks = taskService.getTasks(parsedKrId);
-            log.info("Got {} tasks for KR {}", tasks.size(), parsedKrId);
-            return new SuccessResponse(tasks);
-        } catch (Exception e) {
-            log.error("Get tasks failed for KR {} by user {}", parsedKrId, user.getUsername(), e);
-            throw e;
-        }
-    }
+            VerificExceptionHandler.handleVerificationException(bindingResult);
+            Long userId = StpUtil.getLoginIdAsLong();
+            task.setId(taskId);
+            task.setUserId(userId);
+            log.info("Updating task: {}", taskId);
 
-    @PutMapping("/tasks/{id}")
-    public SuccessResponse updateTask(@PathVariable String id, @RequestBody Task task, Authentication authentication) {
-        TypeValidator.validatePathParam("id", id, Long.class);
-        Long parsedId = Long.parseLong(id);
-        User user = (User) authentication.getPrincipal();
-        log.info("Updating task {} by user {}", parsedId, user.getUsername());
-        try {
-            Task updatedTask = taskService.updateTask(parsedId, task);
+            Task updatedTask = taskService.updateTask(task);
             log.info("Task updated successfully: {}", updatedTask.getId());
+
             return new SuccessResponse(updatedTask);
         } catch (Exception e) {
-            log.error("Update task failed for id {} by user {}", parsedId, user.getUsername(), e);
+            log.error("Failed to update task: {}", e.getMessage());
             throw e;
         }
     }
 
-    @DeleteMapping("/tasks/{id}")
-    public SuccessResponse deleteTask(@PathVariable String id, Authentication authentication) {
-        TypeValidator.validatePathParam("id", id, Long.class);
-        Long parsedId = Long.parseLong(id);
-        User user = (User) authentication.getPrincipal();
-        log.info("Deleting task {} by user {}", parsedId, user.getUsername());
+    /**
+     * 删除任务
+     */
+    @DeleteMapping("/{taskId}")
+    public SuccessResponse deleteTask(@PathVariable Long taskId) {
         try {
-            taskService.deleteTask(parsedId);
-            log.info("Task deleted successfully: {}", parsedId);
-            return new SuccessResponse();
+            log.info("Deleting task: {}", taskId);
+            taskService.deleteTask(taskId);
+            log.info("Task deleted successfully: {}", taskId);
+
+            return new SuccessResponse(null);
         } catch (Exception e) {
-            log.error("Delete task failed for id {} by user {}", parsedId, user.getUsername(), e);
+            log.error("Failed to delete task: {}", e.getMessage());
             throw e;
         }
     }
+
+    /**
+     * 获取任务详情
+     */
+    @GetMapping("/{taskId}")
+    public SuccessResponse getTask(@PathVariable Long taskId) {
+        try {
+            log.info("Getting task: {}", taskId);
+            Task task = taskService.getTaskById(taskId);
+            log.info("Task retrieved successfully: {}", task.getId());
+
+            return new SuccessResponse(task);
+        } catch (Exception e) {
+            log.error("Failed to get task: {}", e.getMessage());
+            throw e;
+        }
+    }
+
+    /**
+     * 获取指定清单下的任务
+     */
+    @GetMapping("/task-list/{taskListId}")
+    public SuccessResponse getTasksByTaskList(@PathVariable Long taskListId) {
+        try {
+            log.info("Getting tasks by task list: {}", taskListId);
+            List<Task> tasks = taskService.getTasksByTaskListId(taskListId);
+            log.info("Retrieved {} tasks for task list: {}", tasks.size(), taskListId);
+
+            return new SuccessResponse(tasks);
+        } catch (Exception e) {
+            log.error("Failed to get tasks by task list: {}", e.getMessage());
+            throw e;
+        }
+    }
+
+    /**
+     * 获取指定父任务下的子任务
+     */
+    @GetMapping("/parent/{parentId}")
+    public SuccessResponse getTasksByParent(@PathVariable Long parentId) {
+        try {
+            log.info("Getting tasks by parent: {}", parentId);
+            List<Task> tasks = taskService.getTasksByParentId(parentId);
+            log.info("Retrieved {} tasks for parent: {}", tasks.size(), parentId);
+
+            return new SuccessResponse(tasks);
+        } catch (Exception e) {
+            log.error("Failed to get tasks by parent: {}", e.getMessage());
+            throw e;
+        }
+    }
+
 }

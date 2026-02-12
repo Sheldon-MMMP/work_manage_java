@@ -1,6 +1,6 @@
 package com.example.okrmanagement.entity;
 
-import jakarta.persistence.*;
+import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -8,32 +8,23 @@ import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
-@Entity
-@Table(name = "time_records")
+@TableName("time_records")
 public class TimeRecord {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(type = IdType.AUTO)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "task_id", nullable = false)
-    private Task task;
+    @TableField(value = "task_id")
+    private Long taskId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @TableField(value = "user_id")
+    private Long userId;
 
-    @Column(name = "start_time", nullable = false)
+    @TableField(value = "start_time")
     private LocalDateTime startTime;
 
-    @Column(name = "end_time", nullable = false)
+    @TableField(value = "end_time")
     private LocalDateTime endTime;
 
-    @Column(name = "created_at", nullable = false)
+    @TableField(value = "created_at", fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-    }
 }

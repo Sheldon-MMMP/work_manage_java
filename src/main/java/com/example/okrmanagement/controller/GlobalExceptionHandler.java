@@ -1,5 +1,6 @@
 package com.example.okrmanagement.controller;
 
+import cn.dev33.satoken.exception.NotLoginException;
 import com.example.okrmanagement.common.ErrorCode;
 import com.example.okrmanagement.dto.ErrorResponse;
 import com.example.okrmanagement.exception.BusinessException;
@@ -10,6 +11,26 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    /**
+     * Sa-Token 未登录异常：返回 401 JSON，避免 302 重定向到 /login。
+     */
+    @ExceptionHandler(NotLoginException.class)
+    public ResponseEntity<ErrorResponse> handleNotLoginException(NotLoginException ex) {
+        String message = "未登录或登录已过期";
+        if (ex.getType() != null) {
+            switch (ex.getType()) {
+                case NotLoginException.NOT_TOKEN -> message = "未提供Token";
+                case NotLoginException.INVALID_TOKEN -> message = "Token无效";
+                case NotLoginException.TOKEN_TIMEOUT -> message = "登录已过期，请重新登录";
+                case NotLoginException.BE_REPLACED -> message = "账号已在其他设备登录";
+                case NotLoginException.KICK_OUT -> message = "已被强制下线";
+                default -> message = "当前会话未登录";
+            }
+        }
+        ErrorResponse body = new ErrorResponse(21108, message);
+        return new ResponseEntity<>(body, HttpStatus.UNAUTHORIZED);
+    }
 
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException ex) {
@@ -24,11 +45,7 @@ public class GlobalExceptionHandler {
         
         // 根据异常消息匹配对应的错误码
         if (message.contains("not found")) {
-            if (message.contains("Objective")) {
-                errorCode = ErrorCode.OBJECTIVE_NOT_FOUND;
-            } else if (message.contains("Key Result")) {
-                errorCode = ErrorCode.KEY_RESULT_NOT_FOUND;
-            } else if (message.contains("Task")) {
+            if (message.contains("Task")) {
                 errorCode = ErrorCode.TASK_NOT_FOUND;
             } else if (message.contains("Anniversary")) {
                 errorCode = ErrorCode.ANNIVERSARY_NOT_FOUND;

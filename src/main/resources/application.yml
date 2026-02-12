@@ -1,0 +1,10 @@
+# 使用 Ant 路径匹配，使 Sa-Token 拦截器的排除路径与 Spring Boot 3 一致
+spring:
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+
+# Sa-Token：前后端分离场景，从 Header 读 token，不读 Cookie，避免未登录时 302 重定向到 /login
+sa-token:
+  is-read-cookie: false
+  is-read-header: true

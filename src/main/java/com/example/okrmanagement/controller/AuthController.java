@@ -8,14 +8,8 @@ import com.example.okrmanagement.service.AuthService;
 
 import jakarta.validation.Valid;
 
-import com.example.okrmanagement.security.JwtUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import com.example.okrmanagement.common.VerificExceptionHandler;
@@ -28,12 +22,6 @@ public class AuthController {
     @Autowired
     private AuthService authService;
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
-
-    @Autowired
-    private JwtUtils jwtUtils;
-
     @PostMapping("/register")
     public SuccessResponse register(@Valid @RequestBody RegisterRequest registerRequest,
             BindingResult bindingResult) {
@@ -43,15 +31,14 @@ public class AuthController {
             User user = authService.register(registerRequest);
             log.info("User registered successfully: {}", user.getEmail());
 
-            // 注册成功后自动登录，生成JWT令牌
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(registerRequest.getEmail(), registerRequest.getPassword()));
-
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-            String jwt = jwtUtils.generateJwtToken(authentication);
+            // 注册成功后自动登录，生成令牌
+            LoginRequest loginRequest = new LoginRequest();
+            loginRequest.setEmail(registerRequest.getEmail());
+            loginRequest.setPassword(registerRequest.getPassword());
+            String token = authService.login(loginRequest);
 
             java.util.Map<String, String> data = new java.util.HashMap<>();
-            data.put("token", jwt);
+            data.put("token", token);
             log.info("User automatically logged in after registration: {}", user.getEmail());
             return new SuccessResponse(data);
         } catch (Exception e) {
@@ -66,18 +53,11 @@ public class AuthController {
         try {
             // 判断是否有错误
             VerificExceptionHandler.handleVerificationException(bindingResult);
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
+            String token = authService.login(loginRequest);
 
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-            String jwt = jwtUtils.generateJwtToken(authentication);
-
-            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            User user = (User) userDetails;
-
-            log.info("User logged in successfully: {}", user.getEmail());
+            log.info("User logged in successfully: {}", loginRequest.getEmail());
             java.util.Map<String, String> data = new java.util.HashMap<>();
-            data.put("token", jwt);
+            data.put("token", token);
             return new SuccessResponse(data);
         } catch (Exception e) {
             log.error("Login failed for email: {}", loginRequest.getEmail());

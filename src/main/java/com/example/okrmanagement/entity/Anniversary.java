@@ -1,6 +1,6 @@
 package com.example.okrmanagement.entity;
 
-import jakarta.persistence.*;
+import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -9,42 +9,29 @@ import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
-@Entity
-@Table(name = "anniversaries")
+@TableName("anniversaries")
 public class Anniversary {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(type = IdType.AUTO)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @TableField(value = "user_id")
+    private Long userId;
 
-    @Column(name = "cover_url")
+    @TableField(value = "cover_url")
     private String coverUrl;
 
-    @Column(nullable = false)
+    @TableField
     private String title;
 
-    @Column(columnDefinition = "TEXT")
+    @TableField
     private String description;
 
-    @Column(name = "anniversary_date", nullable = false)
+    @TableField(value = "anniversary_date")
     private LocalDate anniversaryDate;
 
-    @Column(name = "created_at", nullable = false)
+    @TableField(value = "created_at", fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at")
+    @TableField(value = "updated_at", fill = FieldFill.UPDATE)
     private LocalDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
 }

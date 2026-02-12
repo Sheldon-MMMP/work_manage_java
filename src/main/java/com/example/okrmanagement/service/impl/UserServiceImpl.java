@@ -1,30 +1,29 @@
 package com.example.okrmanagement.service.impl;
 
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.okrmanagement.common.ErrorCode;
 import com.example.okrmanagement.entity.User;
 import com.example.okrmanagement.exception.BusinessException;
-import com.example.okrmanagement.repository.UserRepository;
+import com.example.okrmanagement.mapper.UserMapper;
 import com.example.okrmanagement.service.UserService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.DigestUtils;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 
 @Slf4j
 @Service
-public class UserServiceImpl implements UserService {
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
-
-    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
+public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
     @Override
     public User getUserById(Long id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        User user = getById(id);
+        if (user == null) {
+            throw new BusinessException(ErrorCode.USER_NOT_FOUND);
+        }
+        return user;
     }
 
     @Override
@@ -32,11 +31,7 @@ public class UserServiceImpl implements UserService {
         if (user.getId() == null) {
             throw new BusinessException(ErrorCode.INVALID_PARAMETER);
         }
-
-        // 验证用户是否存在
         User existingUser = getUserById(user.getId());
-
-        // 更新用户信息（只更新非空字段）
         if (user.getUsername() != null) {
             existingUser.setUsername(user.getUsername());
         }
@@ -46,30 +41,33 @@ public class UserServiceImpl implements UserService {
         if (user.getAvatar() != null) {
             existingUser.setAvatar(user.getAvatar());
         }
-        if(user.getPassword()!=null){
-            existingUser.setPassword(passwordEncoder.encode(user.getPassword()));
+        if (user.getPassword() != null) {
+            existingUser.setPassword(encryptPassword(user.getPassword()));
         }
+        updateById(existingUser);
+        log.info("User updated successfully: {}", existingUser.getId());
+        return existingUser;
+    }
 
-        User updatedUser = userRepository.save(existingUser);
-        log.info("User updated successfully: {}", updatedUser.getId());
-        
-        return updatedUser;
+    private String encryptPassword(String password) {
+        if (password == null) {
+            throw new BusinessException(ErrorCode.INVALID_PARAMETER);
+        }
+        return DigestUtils.md5DigestAsHex(password.getBytes(StandardCharsets.UTF_8));
     }
 
     @Override
     public User getUserByEmail(String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        Optional<User> user = getBaseMapper().findByEmail(email);
+        return user.orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
     }
 
     @Override
     public User updateUserAvatar(Long userId, String avatarUrl) {
         User user = getUserById(userId);
         user.setAvatar(avatarUrl);
-        User updatedUser = userRepository.save(user);
-        log.info("User avatar updated successfully: {}", updatedUser.getId());
-        return updatedUser;
+        updateById(user);
+        log.info("User avatar updated successfully: {}", user.getId());
+        return user;
     }
-
-
 }
