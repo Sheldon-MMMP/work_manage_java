@@ -8,3 +8,5 @@ spring:
 sa-token:
   is-read-cookie: false
   is-read-header: true
+  token-name: Authorization   # 将 token 名称改为 Authorization
+  token-prefix: Bearer        # 设置 token 前缀为 Bearer
